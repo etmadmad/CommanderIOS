@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		7EAFA9952DCC9CB000DDCBC0 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 7EAFA9942DCC9CA800DDCBC0 /* .gitignore */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		7EAFA9442DCC991000DDCBC0 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,11 +31,25 @@
 		7EAFA9332DCC990F00DDCBC0 /* Commander.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Commander.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7EAFA9432DCC991000DDCBC0 /* CommanderTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CommanderTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		7EAFA94D2DCC991000DDCBC0 /* CommanderUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CommanderUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		7EAFA9942DCC9CA800DDCBC0 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		7EAFA9C62DCCB1EE00DDCBC0 /* Exceptions for "Commander" folder in "Commander" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 7EAFA9322DCC990F00DDCBC0 /* Commander */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		7EAFA9352DCC990F00DDCBC0 /* Commander */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				7EAFA9C62DCCB1EE00DDCBC0 /* Exceptions for "Commander" folder in "Commander" target */,
+			);
 			path = Commander;
 			sourceTree = "<group>";
 		};
@@ -43,6 +61,11 @@
 		7EAFA9502DCC991000DDCBC0 /* CommanderUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = CommanderUITests;
+			sourceTree = "<group>";
+		};
+		7EAFA9B42DCCAE4300DDCBC0 /* Fonts */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Fonts;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -75,10 +98,12 @@
 		7EAFA92A2DCC990F00DDCBC0 = {
 			isa = PBXGroup;
 			children = (
+				7EAFA9942DCC9CA800DDCBC0 /* .gitignore */,
 				7EAFA9352DCC990F00DDCBC0 /* Commander */,
 				7EAFA9462DCC991000DDCBC0 /* CommanderTests */,
 				7EAFA9502DCC991000DDCBC0 /* CommanderUITests */,
 				7EAFA9342DCC990F00DDCBC0 /* Products */,
+				7EAFA9B42DCCAE4300DDCBC0 /* Fonts */,
 			);
 			sourceTree = "<group>";
 		};
@@ -109,6 +134,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				7EAFA9352DCC990F00DDCBC0 /* Commander */,
+				7EAFA9B42DCCAE4300DDCBC0 /* Fonts */,
 			);
 			name = Commander;
 			packageProductDependencies = (
@@ -212,6 +238,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7EAFA9952DCC9CB000DDCBC0 /* .gitignore in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -398,6 +425,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"Commander/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Commander/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -426,6 +454,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"Commander/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Commander/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

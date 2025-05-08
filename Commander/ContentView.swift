@@ -1,10 +1,3 @@
-//
-//  ContentView.swift
-//  Commander
-//
-//  Created by ethimad abdel on 08/05/25.
-//
-
 import SwiftUI
 
 struct ContentView: View {
