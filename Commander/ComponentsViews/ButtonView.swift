@@ -21,9 +21,9 @@ struct ButtonView: ViewModifier {
     var backgroundColor: Color {
         switch typeBtn {
         case .primary:
-            return Color(hex: darkColor)
+            return Color(hex: accentCustomColor)
         case .secondary:
-            return Color.gray.opacity(0.2)
+            return Color.white
         case .tertiary:
             return Color.clear
         }
@@ -32,11 +32,20 @@ struct ButtonView: ViewModifier {
     var textColor: Color {
         switch typeBtn {
         case .primary:
-            return .white
+            return .black
         case .secondary:
             return .black
         case .tertiary:
-            return .blue
+            return .white
+        }
+    }
+
+    var borderColor: Color? {
+        switch typeBtn {
+        case .tertiary:
+            return .white
+        default:
+            return nil
         }
     }
 
@@ -55,6 +64,10 @@ struct ButtonView: ViewModifier {
             .frame(width: width, height: height)
             .background(backgroundColor)
             .cornerRadius(cornerRadius)
+            .overlay(
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .stroke(borderColor ?? .clear, lineWidth: borderColor != nil ? 1.5 : 0)
+            )
         }
     }
 }
