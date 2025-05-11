@@ -1,5 +1,8 @@
 import SwiftUI
 
+// removed colorHex
+
+
 enum TypeBtn {
     case primary
     case secondary
@@ -15,7 +18,6 @@ struct ButtonView: ViewModifier {
     var height: CGFloat? = 50
     var fontSizeBtn: CGFloat = 18
     var cornerRadius: CGFloat = 10
-    var colorHex: String
     
     
     var backgroundColor: Color {
@@ -80,8 +82,8 @@ extension View {
         width: CGFloat,
         height: CGFloat,
         fontSizeBtn: CGFloat,
-        cornerRadius: CGFloat,
-        colorHex: String
+        cornerRadius: CGFloat
+        
     ) -> some View {
         self.modifier(ButtonView(
             typeBtn: typeBtn,
@@ -90,8 +92,8 @@ extension View {
             width: width,
             height: height,
             fontSizeBtn: fontSizeBtn,
-            cornerRadius: cornerRadius,
-            colorHex: colorHex
+            cornerRadius: cornerRadius
+            
         ))
     }
 }
