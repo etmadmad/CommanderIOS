@@ -1,77 +1,77 @@
-
 import SwiftUI
-
-
-struct TeamsView: View {
+struct ManageTeamsView: View {
     @State private var numberItems: CGFloat = 2
-    var colorsTeams: [String] = ["#F84848", "487DF8", "68B41E", "FFFF9F", "5E00CF" ]
-    let sampleProfile = Profile(username: "JohnDoe", image: "https://via.placeholder.com/150")
-    let sampleViewModel = UserInfoViewModel()
+    @StateObject private var userInfoViewModel = UserInfoViewModel()
     
- 
-    
+    var colorsTeams: [String] = ["#F84848", "487DF8", "68B41E", "FFFF9F", "5E00CF"]
+
     var body: some View {
         ZStack {
-            Color(hex:darkColor)
+            Color(hex: darkColor)
                 .ignoresSafeArea()
-            VStack{
-                
-                HStack{
+            VStack {
+                Spacer()
+                HStack {
                     Text("Teams")
-                        .customFont(.bold, size: 25, hexColor: "FFFFFF")
-                        .foregroundStyle(Color.white)
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                      //  .customFont(.bold, size: 25, hexColor: "FFFFFF")
                     Spacer()
                     Image(systemName: "plus")
-                        .foregroundStyle(Color.white)
-                        .onTapGesture {
-                            numberItems += 1
-                        }
-                    if (numberItems > 2) {
+                        .onTapGesture { numberItems += 1 }
+                    if numberItems > 2 {
                         Image(systemName: "minus")
-                            .foregroundStyle(Color.white)
-                            .onTapGesture {
-                                if numberItems > 2 {
-                                    numberItems -= 1
-                                }
-                            }
+                            .onTapGesture { numberItems -= 1 }
                     }
                 }
-                ScrollView(.horizontal){
-                    HStack (spacing: 10){
-                        ForEach(0..<Int(numberItems), id: \.self) { index in
-                            let colorCard = colorsTeams[index % Int(numberItems)]
-                                TeamsCardview(teamColorCard: colorCard)
-                            
-                        }
-                        
-                    }
-                }
-                .scrollIndicators(.hidden)
-                Spacer()
-                Text("Players")
-                    .customFont(.medium, size: 24, hexColor: "FFFFFF")
-                    .foregroundStyle(Color.white)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                Grid{
-                    GridRow {
-                        UserInfoView(userInfoViewModel: sampleViewModel, profile: sampleProfile)
-                        UserInfoView(userInfoViewModel: sampleViewModel, profile: sampleProfile)
-                        UserInfoView(userInfoViewModel: sampleViewModel, profile: sampleProfile)
-                    }
-                    GridRow {
-                        UserInfoView(userInfoViewModel: sampleViewModel, profile: sampleProfile)
-                        UserInfoView(userInfoViewModel: sampleViewModel, profile: sampleProfile)
-                        UserInfoView(userInfoViewModel: sampleViewModel, profile: sampleProfile)
-                    }
+                .foregroundColor(.white)
 
+                // Scroll orizzontale
+                ScrollView(.horizontal) {
+                    HStack(spacing: 10) {
+                        ForEach(0..<Int(numberItems), id: \.self) { index in
+                            let colorCard = colorsTeams[index % colorsTeams.count]
+                            TeamsCardview(teamColorCard: colorCard)
+                        }
+                    }
                 }
+
+                Spacer()
+                Spacer()
+                // Titolo Players
+                Text("Players")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .foregroundStyle(.white)
+                    //.customFont(.medium, size: 24, hexColor: "FFFFFF")
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                // Lista profili
+                if userInfoViewModel.isLoading {
+                    ProgressView()
+                } else if let errorMessage = userInfoViewModel.errorMessage {
+                    Text(errorMessage).foregroundColor(.red)
+                } else {
+                    ScrollView{
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3)) {
+                            ForEach(userInfoViewModel.users, id: \.username) { profile in
+                                UserInfoView(userInfoViewModel: userInfoViewModel, profile: profile)
+                            }
+                        }
+                    }
+                    .scrollIndicators(.hidden)
+                }
+
                 Spacer()
             }
             .padding(.horizontal, 24)
+            .onAppear {
+                userInfoViewModel.fetchUsers()
+            }
         }
-    }}
-
-#Preview {
-    TeamsView()
+    }
 }
 
+#Preview {
+    ManageTeamsView()
+}
