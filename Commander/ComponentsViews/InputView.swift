@@ -5,8 +5,11 @@ struct InputView: View {
     let inputName: String
     let placeholder: String
     var isSecureField = false
+    var opacityGlowBorderInput = 0
     
     @State private var isPasswordVisible = false
+    
+    @FocusState private var isFocused: Bool
 
     var body: some View {
         VStack(spacing: 8) {
@@ -18,8 +21,10 @@ struct InputView: View {
                 Group {
                     if isSecureField && !isPasswordVisible {
                         SecureField(placeholder, text: $inputText)
+                            .focused($isFocused)
                     } else {
                         TextField(placeholder, text: $inputText)
+                        
                     }
                 }
                 .padding(.trailing, 40)
@@ -27,12 +32,16 @@ struct InputView: View {
                 .foregroundStyle(Color.white)
                 .background(
                     RoundedRectangle(cornerRadius: 10)
-                        .fill(Color.white.opacity(0.1))
-                        .stroke(Color(hex: "EDF1F3").opacity(0.05), lineWidth: 2)
+                        .stroke(isFocused ? Color(hex: "#00FF33") : Color.gray, lineWidth: 1)
+                        .shadow(color: isFocused ? Color(hex: "#00FF33").opacity(0.6) : .clear, radius: 5)
+                        .shadow(color: isFocused ? Color(hex: "#00FF33").opacity(0.4) : .clear, radius: 10)
                         .frame(height: 46)
+                        .animation(.easeInOut(duration: 0.3), value: isFocused)
                 )
                 .autocorrectionDisabled(true)
-
+                .focused($isFocused)
+                .onTapGesture {isFocused = true}
+                
                 if isSecureField {
                     Button(action: {
                         isPasswordVisible.toggle()
@@ -42,6 +51,8 @@ struct InputView: View {
                     }
                     .padding(.trailing, 12)
                 }
+                
+            
             }
         }
     }
