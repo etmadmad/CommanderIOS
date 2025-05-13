@@ -12,11 +12,11 @@ enum TypeBtn {
 struct ButtonView: ViewModifier {
     var typeBtn: TypeBtn
     
-    var textBtn: String
-    var icon: String
+   // var textBtn: String
+  //  var icon: String
     var width: CGFloat? = nil
     var height: CGFloat? = 50
-    var fontSizeBtn: CGFloat = 18
+ //   var fontSizeBtn: CGFloat = 18
     var cornerRadius: CGFloat = 10
     
     
@@ -50,48 +50,37 @@ struct ButtonView: ViewModifier {
             return nil
         }
     }
-
     func body(content: Content) -> some View {
-        Button(action: {
-            print("click")
-        }) {
-            HStack {
-                if !icon.isEmpty {
-                    Image(systemName: icon)
-                }
-                Text(textBtn)
-                    .font(.custom("KodeMono-Regular", size: fontSizeBtn))
-                    .foregroundColor(textColor)
-            }
-            .frame(width: width, height: height)
-            .background(backgroundColor)
-            .cornerRadius(cornerRadius)
-            .overlay(
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .stroke(borderColor ?? .clear, lineWidth: borderColor != nil ? 1.5 : 0)
-            )
-        }
+            content
+                .frame(width: width, height: height)
+                .background(backgroundColor)
+                .foregroundColor(textColor)
+                .overlay(
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .stroke(borderColor ?? .clear, lineWidth: 1)
+                )
+                .cornerRadius(cornerRadius)
     }
 }
 
 extension View {
     func customButton(
         typeBtn: TypeBtn,
-        textBtn: String,
-        icon: String,
+     //   textBtn: String,
+      //  icon: String,
         width: CGFloat,
         height: CGFloat,
-        fontSizeBtn: CGFloat,
+      //  fontSizeBtn: CGFloat,
         cornerRadius: CGFloat
         
     ) -> some View {
         self.modifier(ButtonView(
             typeBtn: typeBtn,
-            textBtn: textBtn,
-            icon: icon,
+          //  textBtn: textBtn,
+           // icon: icon,
             width: width,
             height: height,
-            fontSizeBtn: fontSizeBtn,
+          //  fontSizeBtn: fontSizeBtn,
             cornerRadius: cornerRadius
             
         ))
