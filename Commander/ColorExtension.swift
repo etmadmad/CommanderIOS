@@ -3,6 +3,9 @@ import SwiftUI
 var accentCustomColor: String = "#00FF33"
 var darkColor: String = "#121212"
 var white: String = "#ffffff"
+var black: String = "#000000"
+var grayDetails: String = "#747474"
+var redError: String = "#ff0033"
 
 extension Color {
     init(hex: String) {
