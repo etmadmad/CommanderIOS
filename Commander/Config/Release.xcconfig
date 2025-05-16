@@ -1,0 +1,12 @@
+//
+//  Release.xcconfig
+//  Commander
+//
+//  Created by ethimad abdel on 15/05/25.
+//
+
+// Configuration settings file format documentation can be found at:
+// https://help.apple.com/xcode/#/dev745c5c974
+
+API_SCHEME = http
+API_BASE_URL = 5.189.158.70:8000/api
