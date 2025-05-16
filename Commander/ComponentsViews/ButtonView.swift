@@ -45,7 +45,7 @@ struct ButtonView: ViewModifier {
     var borderColor: Color? {
         switch typeBtn {
         case .tertiary:
-            return .white
+            return Color(hex: grayDetails)
         default:
             return nil
         }
@@ -57,7 +57,7 @@ struct ButtonView: ViewModifier {
                 .foregroundColor(textColor)
                 .overlay(
                     RoundedRectangle(cornerRadius: cornerRadius)
-                        .stroke(borderColor ?? .clear, lineWidth: 1)
+                        .stroke(borderColor ?? .clear, lineWidth: 1.5)
                 )
                 .cornerRadius(cornerRadius)
     }
