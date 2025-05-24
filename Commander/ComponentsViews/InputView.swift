@@ -7,9 +7,12 @@ struct InputView: View {
     var isSecureField = false
     var opacityGlowBorderInput = 0
     
+    var showError: Bool = false
+    
     @State private var isPasswordVisible = false
     
     @FocusState private var isFocused: Bool
+
 
     var body: some View {
         VStack(spacing: 8) {
@@ -21,20 +24,22 @@ struct InputView: View {
                 Group {
                     if isSecureField && !isPasswordVisible {
                         SecureField(placeholder, text: $inputText)
-                            .focused($isFocused)
+                            
                     } else {
                         TextField(placeholder, text: $inputText)
-                        
+                            
+                    
                     }
                 }
                 .padding(.trailing, 40)
                 .padding()
-                .foregroundStyle(Color.white)
+                .foregroundStyle(isFocused ? Color(hex: accentCustomColor) : Color(hex: white))
                 .background(
                     RoundedRectangle(cornerRadius: 10)
-                        .stroke(isFocused ? Color(hex: "#00FF33") : Color.gray, lineWidth: 1)
-                        .shadow(color: isFocused ? Color(hex: "#00FF33").opacity(0.6) : .clear, radius: 5)
-                        .shadow(color: isFocused ? Color(hex: "#00FF33").opacity(0.4) : .clear, radius: 10)
+                        .stroke(showError && !isFocused ? Color(hex: redError) : (isFocused ? Color(hex: accentCustomColor) :  Color(hex: grayDetails)), lineWidth: 1)
+
+                        .shadow(color: isFocused ? Color(hex: accentCustomColor).opacity(0.6) : .clear, radius: 5)
+                        .shadow(color: isFocused ? Color(hex: accentCustomColor).opacity(0.4) : .clear, radius: 10)
                         .frame(height: 46)
                         .animation(.easeInOut(duration: 0.3), value: isFocused)
                 )
@@ -52,6 +57,8 @@ struct InputView: View {
                     .padding(.trailing, 12)
                 }
                 
+
+                
             
             }
         }
@@ -64,7 +71,7 @@ struct InputView: View {
             .ignoresSafeArea()
         VStack(spacing: 20) {
             InputView(inputText: .constant("password123"), inputName: "Password", placeholder: "Enter password", isSecureField: true)
-            InputView(inputText: .constant(""), inputName: "Username", placeholder: "Username")
+            InputView(inputText: .constant("ciao"), inputName: "Username", placeholder: "Username")
         }
         .padding()
     }
