@@ -28,6 +28,8 @@ struct LabelledDivider: View {
 
 struct LogInView: View {
     @EnvironmentObject var authViewModel: AuthtenticationViewModel
+    @State private var path: [Int] = []
+    @StateObject private var registrationVM = RegisterViewModel()
     
     @State private var shakeTrigger = false
     @State private var shakeAnimation = 0.0
@@ -59,16 +61,17 @@ struct LogInView: View {
                     
                     // EMAIL INPUT, binding perchè non viene gestito qua
                     InputView(
-                        inputText: $authViewModel.credentials.email,
-                        inputName: "Email",
-                        placeholder: "Your email",
-                        showError: authViewModel.triedToLogin && authViewModel.credentials.email.isEmpty
+                        inputText: $authViewModel.credentials.username,
+                        inputName: "Email or Username",
+                        placeholder: "Your email or username",
+                        showError: authViewModel.triedToLogin && authViewModel.credentials.username.isEmpty
                     )
+                    .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                    
                     
                     if authViewModel.triedToLogin {
-                        if authViewModel.credentials.email.isEmpty {
+                        if authViewModel.credentials.username.isEmpty {
                             Text("Email Required")
                                 .font(.system(size: 16))
                                 .foregroundStyle(Color.red)
@@ -111,27 +114,30 @@ struct LogInView: View {
                     }
                     .padding(.bottom, 36)
                     
-                    // LOGIN BUTTON (modifier)
+                    /// LOGIN BUTTON (modifier)
                     Button {
                         authViewModel.checkInput()
+                        
                     } label: {
                         Text("Login")
                             .customFont(.bold, size: 18, hexColor: darkColor)
+                            .modifier(ButtonView(typeBtn: .primary, width: 350, height: 50, cornerRadius: 8))
                     }
-                    .modifier(ButtonView(typeBtn: .primary, width: 350, height: 50, cornerRadius: 8))
+                   
                     
                     LabelledDivider(label: "or")
                   
                     
                     // GOOGLE LOGIN BUTTON (estensione modifier)
                     Button {
-                        print("fanculo")
+                        
                         authViewModel.login()
                     } label: {
                         Text("Login with Google")
                             .customFont(.regular, size: 18, hexColor: accentCustomColor)
+                            .customButton(typeBtn: .tertiary, width: 350, height: 40, cornerRadius: 8)
                     }
-                    .customButton(typeBtn: .tertiary, width: 350, height: 40, cornerRadius: 8)
+                   
                     
                     
                     Spacer()
@@ -146,15 +152,18 @@ struct LogInView: View {
                     .onTapGesture {
                         print("sheet presented")
                         isSheetPresented.toggle()
+                        
                       
                     }
                     
                     .sheet(isPresented: $isSheetPresented) {
-                        FirstRegistrationView1()
-                            .background(Color(hex: darkColor).ignoresSafeArea()) // ← Forzato qui
-                            .presentationDetents([.medium, .large])
-                            .presentationDragIndicator(.visible)
+//                        FirstRegistrationView1(path: $path)
+//                            .environmentObject(registrationVM)
+                        RegistrationRoot()
                     }
+                    .background(Color(hex: darkColor).ignoresSafeArea())
+                    .presentationDetents([.medium, .large])
+                    .presentationDragIndicator(.visible)
 
 
              
