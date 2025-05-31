@@ -7,7 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7E098A9E2DDF096300CEDDC8 /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = 7E098A9D2DDF096300CEDDC8 /* KeychainAccess */; };
+		7E3E460B2DD36D770095ECC2 /* ciao.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E3E460A2DD36D770095ECC2 /* ciao.swift */; };
 		7EAFA9952DCC9CB000DDCBC0 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 7EAFA9942DCC9CA800DDCBC0 /* .gitignore */; };
+		7EE9740E2DCE17B900D50F45 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 7EE9740D2DCE17B900D50F45 /* Alamofire */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -28,6 +31,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		7E3E460A2DD36D770095ECC2 /* ciao.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ciao.swift; sourceTree = "<group>"; };
 		7EAFA9332DCC990F00DDCBC0 /* Commander.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Commander.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7EAFA9432DCC991000DDCBC0 /* CommanderTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CommanderTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		7EAFA94D2DCC991000DDCBC0 /* CommanderUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CommanderUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -75,6 +79,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7E098A9E2DDF096300CEDDC8 /* KeychainAccess in Frameworks */,
+				7EE9740E2DCE17B900D50F45 /* Alamofire in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -98,6 +104,7 @@
 		7EAFA92A2DCC990F00DDCBC0 = {
 			isa = PBXGroup;
 			children = (
+				7E3E460A2DD36D770095ECC2 /* ciao.swift */,
 				7EAFA9942DCC9CA800DDCBC0 /* .gitignore */,
 				7EAFA9352DCC990F00DDCBC0 /* Commander */,
 				7EAFA9462DCC991000DDCBC0 /* CommanderTests */,
@@ -138,6 +145,8 @@
 			);
 			name = Commander;
 			packageProductDependencies = (
+				7EE9740D2DCE17B900D50F45 /* Alamofire */,
+				7E098A9D2DDF096300CEDDC8 /* KeychainAccess */,
 			);
 			productName = Commander;
 			productReference = 7EAFA9332DCC990F00DDCBC0 /* Commander.app */;
@@ -221,6 +230,10 @@
 			);
 			mainGroup = 7EAFA92A2DCC990F00DDCBC0;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				7EE9740C2DCE17B900D50F45 /* XCRemoteSwiftPackageReference "Alamofire" */,
+				7E098A9C2DDF096300CEDDC8 /* XCRemoteSwiftPackageReference "KeychainAccess" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 7EAFA9342DCC990F00DDCBC0 /* Products */;
 			projectDirPath = "";
@@ -263,6 +276,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7E3E460B2DD36D770095ECC2 /* ciao.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -417,12 +431,15 @@
 		};
 		7EAFA9582DCC991000DDCBC0 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 7EAFA9352DCC990F00DDCBC0 /* Commander */;
+			baseConfigurationReferenceRelativePath = Config/Release.xcconfig;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Commander/Preview Content\"";
+				DEVELOPMENT_TEAM = 3Y5NWKV5B5;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Commander/Info.plist;
@@ -446,12 +463,15 @@
 		};
 		7EAFA9592DCC991000DDCBC0 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 7EAFA9352DCC990F00DDCBC0 /* Commander */;
+			baseConfigurationReferenceRelativePath = Config/Release.xcconfig;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Commander/Preview Content\"";
+				DEVELOPMENT_TEAM = 3Y5NWKV5B5;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Commander/Info.plist;
@@ -581,6 +601,38 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		7E098A9C2DDF096300CEDDC8 /* XCRemoteSwiftPackageReference "KeychainAccess" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/kishikawakatsumi/KeychainAccess.git";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
+		7EE9740C2DCE17B900D50F45 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Alamofire/Alamofire.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.10.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		7E098A9D2DDF096300CEDDC8 /* KeychainAccess */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7E098A9C2DDF096300CEDDC8 /* XCRemoteSwiftPackageReference "KeychainAccess" */;
+			productName = KeychainAccess;
+		};
+		7EE9740D2DCE17B900D50F45 /* Alamofire */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7EE9740C2DCE17B900D50F45 /* XCRemoteSwiftPackageReference "Alamofire" */;
+			productName = Alamofire;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 7EAFA92B2DCC990F00DDCBC0 /* Project object */;
 }

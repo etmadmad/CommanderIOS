@@ -2,7 +2,7 @@ import SwiftUI
 import PhotosUI
 struct ImagePickerView: View {
     @State private var selectedItem: PhotosPickerItem? = nil
-    @State private var selectedImageData: Data? = nil
+    @Binding var selectedImageData: Data?
 
     var body: some View {
         VStack {
@@ -41,17 +41,10 @@ struct ImagePickerView: View {
                 }
             }
         }
-        .padding()
+
     }
 }
 
-struct ImagePickerView_Previews: PreviewProvider {
-    static var previews: some View {
-        ImagePickerView()
-            .previewLayout(.sizeThatFits)
-            .padding()
-            .background(Color(UIColor.systemBackground))
-    }
-}
+
 
 

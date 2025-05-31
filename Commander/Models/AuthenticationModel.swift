@@ -38,3 +38,21 @@ struct OTPVerificationResponseModel: Decodable {
     var access: String
 }
 
+
+// token
+struct MessageTokenExpired: Decodable {
+    var token_class: String = ""
+    var token_type: String = ""
+    var message: String = ""
+}
+
+struct TokenUserExpired: Decodable {
+    var detail: String = ""
+    var code: String = ""
+    var message: MessageTokenExpired
+}
+
+
+struct RefreshTokenResponseModel: Decodable {
+    var access: String
+}

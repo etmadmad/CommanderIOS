@@ -267,6 +267,8 @@ struct SecondRegistrationView1: View {
 struct ThirdRegistrationView1: View {
     @EnvironmentObject var registrationVM: RegisterViewModel
     @Binding var path: [RegistrationStep]
+    @State private var selectedImageData: Data? = nil
+
     
   
     var body: some View {
@@ -276,16 +278,19 @@ struct ThirdRegistrationView1: View {
             
                 VStack {
                     Spacer()
+                    
                     Text("Commander")
                         .customFont(.bold, size: 30, hexColor: accentCustomColor)
+                    
                     Spacer()
                     Text("Sign Up")
                         .customFont(.bold, size: 38, hexColor: "FFFFFF")
                         .frame(maxWidth: .infinity, alignment: .leading)
-                
-                    ImagePickerView()
                     
-
+                  
+                    ImagePickerView(selectedImageData: $selectedImageData)
+                    
+                    
                     InputView(inputText: $registrationVM.registrationData.username,
                               inputName: "Username",
                               placeholder: "Username",
@@ -297,7 +302,9 @@ struct ThirdRegistrationView1: View {
 
                     }
                     
+                    
                     errorText(registrationVM.isUsernameTaken && !registrationVM.registrationData.username.isEmpty, message: "Username is already taken")
+                    
                     
                     if !registrationVM.isUsernameTaken && !registrationVM.registrationData.username.isEmpty {
                         Text("Username available")
@@ -305,7 +312,6 @@ struct ThirdRegistrationView1: View {
                             .foregroundStyle(Color(hex: accentCustomColor))
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
-               
                     
                     HStack{
                         /// BACK - 3
@@ -318,27 +324,30 @@ struct ThirdRegistrationView1: View {
                         
                         /// SIGN IN - 3
                         Button(action: {
-                            if  registrationVM.validateStep3() {
+                            if  registrationVM.validateStep3()  {
                                 print(registrationVM.registrationData.password, registrationVM.registrationData.password2)
                                 print("risultato registrazione nel view", registrationVM.registrationSuccess)
-                                if registrationVM.registrationSuccess {
-                                    path.append(.successfulRegistration)
-                                }
-                                else {
-                                    path.append(.unsuccessfulRegistration)
-                                }
-                                
                             }}) {
                                 Text("Sign Up")
                             }
                             .customButton(typeBtn: .primary, width: 120, height: 50, cornerRadius: 15)
                             .frame(maxWidth: .infinity, alignment: .trailing)
-                  
+                            
+                            /// when registration successful --> append successful reg view
+                            .onChange(of: registrationVM.registrationSuccess) {
+                                if registrationVM.registrationSuccess {
+                                    path.append(.successfulRegistration)
+                                }
+                            }
+                            /// when registration NOT successful & tried call api --> append UNsuccessful reg view
+                            .onChange(of: registrationVM.triedApiCall) {
+                                if registrationVM.triedApiCall && !registrationVM.registrationSuccess {
+                                    path.append(.unsuccessfulRegistration)
+                                }
+                            }
                     }
                     Spacer()
-                        
                     }
-              
                     .padding(.horizontal, 30)
                 }
             .navigationBarBackButtonHidden(true)

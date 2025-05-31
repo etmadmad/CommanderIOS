@@ -45,7 +45,7 @@ struct ButtonView: ViewModifier {
     var borderColor: Color? {
         switch typeBtn {
         case .tertiary:
-            return Color(hex: grayDetails)
+            return Color(hex: white)
         default:
             return nil
         }
@@ -60,6 +60,7 @@ struct ButtonView: ViewModifier {
                         .stroke(borderColor ?? .clear, lineWidth: 1.5)
                 )
                 .cornerRadius(cornerRadius)
+                .contentShape(Rectangle())
     }
 }
 

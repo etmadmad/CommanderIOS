@@ -1,17 +1,27 @@
-//
-//  CommanderApp.swift
-//  Commander
-//
-//  Created by ethimad abdel on 08/05/25.
-//
-
 import SwiftUI
 
 @main
 struct CommanderApp: App {
+    @StateObject var authViewModel = AuthtenticationViewModel()
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            Group {
+                if authViewModel.isLoggedIn {
+                    if authViewModel.isOTPvalid {
+                        ContentView()
+                            .environmentObject(authViewModel)
+//                        ProfileView()
+//                            .environmentObject(authViewModel)
+                    } else {
+                        OTPVerificationView()
+                            .environmentObject(authViewModel)
+                    }
+                } else {
+                    LogInView()
+                        .environmentObject(authViewModel)
+                }
+            }
         }
     }
 }

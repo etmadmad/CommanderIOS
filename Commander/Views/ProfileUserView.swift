@@ -2,7 +2,7 @@ import SwiftUI
 
 
 struct ProfileView: View {
-    @StateObject var profileVM = ProfileViewModel()
+    @StateObject var profileVM = ProfileViewModel(authVM: AuthtenticationViewModel())
     @EnvironmentObject var authVM: AuthtenticationViewModel
     @State private var isLoggingOut = false
 

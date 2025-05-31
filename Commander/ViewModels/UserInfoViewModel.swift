@@ -1,19 +1,5 @@
 import Alamofire
 import SwiftUI
-
-//class UserInfoViewModel: ObservableObject {
-  //  @Published private var user: [UserInfoModel]
-    //@Published private var isLoading: Bool
-    
-    //func fetchUsers() {
-      //  AF.request("https://jsonplaceholder.typicode.com/users")
-        //            .validate()
-          //          .responseDecodable(of: [UserInfoModel].self) { response in
-            //            debugPrint("Response: \(response)")
-                      //  }
-  //  }
-//}
-
 import Foundation
 
 
@@ -22,7 +8,7 @@ class UserInfoViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
 
-    func fetchUsers(limit: Int = 10) {
+    func fetchUsers(limit: Int = 20) {
         isLoading = true
         errorMessage = nil
 

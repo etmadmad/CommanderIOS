@@ -8,9 +8,11 @@ struct UserRegistrationModel: Codable {
     var first_name: String = ""
     var last_name: String = ""
     var date_of_birth: Date = Date()
-    var profile_image: Data? = nil
+//    var profile_image: String? = nil
     
 }
+
+//  prima era var profile_image: Data? = nil
 
 struct UsernameTakenModel: Decodable {
     let username_taken: Bool
@@ -25,13 +27,14 @@ struct RegistrationResponse: Decodable {
     let user: User
 }
 
+/// tolto ?
 struct User: Codable {
     let id: String
     let username: String
     let email: String
-    let first_name: String?
-    let last_name: String?
-    let date_of_birth: String?
+    let first_name: String
+    let last_name: String
+    let date_of_birth: String
     let profile_image: String?
 }
 
