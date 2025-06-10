@@ -18,5 +18,15 @@
 		<string>KodeMono-SemiBold.ttf</string>
 		<string>KodeMono-Bold.ttf</string>
 	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+	</array>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app needs your location to function properly, even when the app is in the background.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>This app needs your location always to provide continuous tracking, even in the background.</string>
+	<key></key>
+	<string></string>
 </dict>
 </plist>
