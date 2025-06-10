@@ -12,13 +12,13 @@ struct JoinRoomView: View {
                     .ignoresSafeArea()
 
                 VStack(spacing: 24) {
-                    
+                    Spacer()
                     // Header
                     HStack {
                         Text("Commander")
                             .customFont(.bold, size: 30, hexColor: accentCustomColor)
                         Spacer()
-                        NavigationLink(destination: ProfileView()) {
+                        NavigationLink(destination: ProfileView(registrationVM: RegisterViewModel())) {
                             Image(systemName: "person.circle")
                                 .resizable()
                                 .frame(width: 40, height: 40)
@@ -29,7 +29,7 @@ struct JoinRoomView: View {
 
                     // Input
                     VStack(spacing: 8) {
-                        InputView(inputText: $roomInfoViewModel.roomCode, inputName: "Enter Room Code", placeholder: "#000000")
+                        InputView(inputText: $roomInfoViewModel.roomCode, inputName: "Enter Room Code", placeholder: "#00FF33")
                         
                         if roomInfoViewModel.triedToJoin && roomInfoViewModel.roomCode.isEmpty {
                             Text("Room not available")
@@ -53,11 +53,9 @@ struct JoinRoomView: View {
                     )
                     .padding(.top, 8)
 
-                    // Your Rooms Section
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Your Rooms")
-                            .font(.title2.bold())
-                            .foregroundStyle(.white)
+                            .customFont(.bold, size: 25, hexColor: white)
 
                         ZStack {
                             RoundedRectangle(cornerRadius: 16)
@@ -76,7 +74,7 @@ struct JoinRoomView: View {
                                 .padding()
                             }
                         }
-                        .frame(height: 220)
+                        .frame(height: 246)
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                     }
                     .padding(.top, 24)
@@ -84,6 +82,7 @@ struct JoinRoomView: View {
                     Spacer()
                 }
                 .padding(.horizontal, 24)
+//                TabBarView()
             }
         }
     }
