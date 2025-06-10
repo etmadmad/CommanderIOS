@@ -18,8 +18,14 @@ struct UsernameTakenModel: Decodable {
     let username_taken: Bool
 }
 
-struct EmailTakenModel: Decodable {
+struct EmailValidationResponseModel: Decodable {
     let email_taken: Bool
+    let email: [String]?
+}
+
+struct PasswordValidationResponseModel: Decodable {
+    let password_valid: Bool
+    let error: String?
 }
 
 struct RegistrationResponse: Decodable {
@@ -37,4 +43,5 @@ struct User: Codable {
     let date_of_birth: String
     let profile_image: String?
 }
+
 
