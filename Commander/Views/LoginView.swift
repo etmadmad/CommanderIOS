@@ -197,6 +197,10 @@ struct LogInView: View {
             authViewModel.triedToLogin = false
             authViewModel.credentials = Credentials()
         }
+        .onAppear {
+            print("CHECK IF TOKENS ARE VALID")
+            authViewModel.loadTokensFromKeychain()
+        }
 
     }
 }
