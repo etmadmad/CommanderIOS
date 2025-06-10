@@ -16,7 +16,7 @@ struct Environment {
             fatalError("Invalid URL formed from APP_SCHEME and APP_BASE_URL: \(fullURL)")
         }
 
-        print("✅ API URL:", fullURL)
+        print("API URL:", fullURL)
         return fullURL
     }
 
@@ -36,58 +36,92 @@ class AuthtenticationViewModel: ObservableObject {
     @Published var authToken: AuthToken?
     @Published var otpModel = OTPVerificationModel()
     
-    // var for login
+    /// LOGIN
     @Published var isLoggedIn: Bool = false
     @Published var triedToLogin: Bool = false
     
-    // var for checking if credentials are valid
+    /// AGE, EMAIL, OTP
     @Published var isBirthdayValid: Bool = false
     @Published var isEmailValid: Bool = true
-    
-    // for tokens
-    @Published var accessToken: String?
-    @Published var refreshToken: String?
-    
     @Published var isOTPvalid: Bool = false
     
+   /// TOKENS
+    var accessToken: String? {
+        guard let accessToken = try? keychain.get("accessToken") else { return nil }
+        return accessToken
+    }
+    var refreshToken: String? {
+        guard let refreshToken = try? keychain.get("refreshToken") else { return nil }
+        return refreshToken
+    }
+    
+    /// HEADERS
     private var headers: HTTPHeaders = [
         "Accept" : "application/json",
         "Content-Type" : "application/json"
     ]
     
     
-    /// LOG IN URL
+    /// URLS
     private var loginURL = Environment.baseURL + "/login/"
-    
-    ///OTP URLS
     private var requestOTPURL = Environment.baseURL + "/login/request-otp/"
     private var verifyOTPURL = Environment.baseURL + "/login/verify-otp/"
-    
-    /// REFRESH TOKEN
     private var tokenRefreshURL = Environment.baseURL + "/token/refresh/"
+    private var logoutURL = Environment.baseURL + "/logout/"
+    private var deleteAccountURL = Environment.baseURL + "/delete-account/"
     
     
+    /// KEYCHAIN
     let keychain = Keychain(service: "com.InsalataCreativa.Commander")
+    
     
     init() {
             loadTokensFromKeychain()
         }
 
     func loadTokensFromKeychain() {
-        do {
-            accessToken = try keychain.get("accessToken")
-            refreshToken = try keychain.get("refreshToken")
-            if accessToken != nil {
-                isLoggedIn = true
-                isOTPvalid = true
-                print(isLoggedIn)
-
-            } else {
-                isLoggedIn = false
-            }
-        } catch {
-            print("Errore caricamento token:", error)
+        if accessToken == nil && refreshToken == nil {
             isLoggedIn = false
+            return
+        }
+        isAccessTokenValid { isValid in
+            if isValid {
+                self.isLoggedIn = true
+                self.isOTPvalid = true
+//                print(self.accessToken, self.refreshToken)
+            } else {
+                self.getNewAccessToken { result in
+                    switch result {
+                        case .success:
+                            print("Access token aggiornato con successo")
+                            self.isLoggedIn = true
+                            self.isOTPvalid = true
+                        case .failure(let error):
+                            print("Errore durante l'aggiornamento del token:", error)
+                            self.isLoggedIn = false
+                        }
+                }
+            }
+        }
+        
+    }
+    
+    private func isAccessTokenValid(completion: @escaping (Bool) -> Void) {
+        guard let token = accessToken else {
+            completion(false)
+            return
+        }
+        
+        var headersCheck = headers
+        headersCheck.add(name: "Authorization", value: "Bearer \(token)")
+        
+        AF.request("\(Environment.baseURL)/current-user/", headers: headersCheck).validate().response {
+            response in
+            if response.response?.statusCode == 200 {
+                completion(true)
+            } else {
+                completion(false)
+            }
         }
     }
     
@@ -125,7 +159,7 @@ class AuthtenticationViewModel: ObservableObject {
         
     func login() {
         // added JSONParameterEncoder.default, controlla l'encoder anche di email
-        print("Ciao Ethi", credentials)
+        print("Login Requested", credentials)
         AF.request(loginURL, method: .post, parameters: credentials, encoder: JSONParameterEncoder.default, headers: self.headers)
             .validate(statusCode: 200..<300)
             .responseDecodable(of: AuthToken.self) { response in
@@ -148,9 +182,56 @@ class AuthtenticationViewModel: ObservableObject {
                 }
             }
     }
+    
+//    func deleteAccount () {
+//        print("Delete Account Requested")
+//        AF.request(deleteAccountURL, method: .delete, parameters: accessToken, encoder: JSONParameterEncoder.default)
+//            .validate(statusCode: 200..<300)
+//            .response { response in
+//                if let error = response.error {
+//                    self.errorMessage = error.localizedDescription
+//                    print("Error Delete Account", error)
+//                    return
+//                }
+//                // Success
+//                print("Account Deleted")
+//                self.isLoggedIn = false
+//                self.authToken = nil
+//                self.isOTPvalid = false
+//                self.credentials = Credentials()
+//                self.user = nil
+//            }
+//    }
+    
+    func deleteAccount () {
+        print("Delete Account Requested")
+        guard let token = accessToken else {
+            self.errorMessage = "Token non trovato"
+            print("Token non trovato")
+            return
+        }
+        var headersWithAuth = headers
+        headersWithAuth.add(name: "Authorization", value: "Bearer \(token)")
+
+        AF.request(deleteAccountURL, method: .delete, headers: headersWithAuth)
+            .validate(statusCode: 200..<300)
+            .response { response in
+                if let error = response.error {
+                    self.errorMessage = error.localizedDescription
+                    print("Error Delete Account", error)
+                    return
+                }
+                
+                print("Account Deleted")
+                self.isLoggedIn = false
+                self.authToken = nil
+                self.isOTPvalid = false
+                self.credentials = Credentials()
+                self.user = nil
+            }
+    }
         
         
-        // request otp codable: username & password
     func requestOTP() {
         AF.request(requestOTPURL, method: .post, parameters: credentials)
             .validate(statusCode: 200..<300)
@@ -158,11 +239,11 @@ class AuthtenticationViewModel: ObservableObject {
                 switch response.result {
                 case .success(let token):
                     
-                    print("Hai requestato l'OTP", token)
+                    print("OTP Requested", token)
                     
                 case .failure (let error):
                     self.errorMessage = error.localizedDescription
-                    print("Hai requestato l'OTP", error)
+                    print("ERROR OTP Request", error)
                 }}
     }
         
@@ -191,36 +272,19 @@ class AuthtenticationViewModel: ObservableObject {
         
     }
     
-    
-//    func refreshAccessToken() {
-//        let refreshToken = try? keychain.get("refreshToken")
-//        
-//        if refreshToken != nil {
-//            AF.request(tokenRefreshURL, method: .post, parameters: refreshToken, encoder: JSONParameterEncoder.default, headers: self.headers)
-//                .validate(statusCode: 200..<300)
-//                .responseDecodable(of: RefreshTokenResponseModel.self) { response in
-//                    switch response.result {
-//                        
-//                    case .success(let accessToken):
-//                        print(response.result)
-//                        do {
-//                            try self.keychain.set(accessToken.access, key: "accessToken")}
-//                        catch {
-//                            print("Errore nel salvataggio token:", error)
-//                        }
-////                        .fetchUserInfo()
-//                        
-//                    case .failure(let error):
-//                        self.errorMessage = error.localizedDescription
-//                        print("Errore refreshAccessToken():", error)
-//                           
-//                }
-//            }
-//        }
-//    }
-    
-    func refreshAccessToken(completion: (() -> Void)? = nil) {
-        guard let refreshToken = try? keychain.get("refreshToken") else { return }
+
+    enum AuthError: Error {
+        case refreshTokenNotFound
+        case keychainSaveError(Error)
+        // altri casi di errore se necessario
+    }
+
+    func getNewAccessToken(completion: @escaping (Result<Void, Error>) -> Void) {
+        guard let refreshToken = try? keychain.get("refreshToken") else {
+            completion(.failure(AuthError.refreshTokenNotFound)) // Definisci un errore apposito
+            logout() // Logout se non c'è il refresh token
+            return
+        }
 
         AF.request(tokenRefreshURL, method: .post, parameters: ["refresh": refreshToken], encoder: JSONParameterEncoder.default, headers: self.headers)
             .validate(statusCode: 200..<300)
@@ -228,23 +292,26 @@ class AuthtenticationViewModel: ObservableObject {
                 switch response.result {
                 case .success(let token):
                     do {
-                        try self.keychain.set(token.access, key: "accessToken")
-                        self.accessToken = token.access
+                        try
+                        ///  if refresh token is valid, it sends me a new access token
+                        self.keychain.set(token.access, key: "accessToken")
                         print("Access token refreshed.")
-                        completion?()
+                        completion(.success(()))
                     } catch {
                         print("Errore salvataggio nuovo token:", error)
+                        completion(.failure(error))
                     }
                 case .failure(let error):
                     self.errorMessage = error.localizedDescription
                     print("Errore refreshAccessToken():", error)
+                    self.logout()
+                    completion(.failure(error))
                 }
             }
     }
-
     
     func logout() {
-        /// remove tokenbs and clears data saved in userDefaults
+        /// remove tokens and clears data saved in userDefaults
         do {
             try keychain.remove("accessToken")
             try keychain.remove("refreshToken")
@@ -253,8 +320,6 @@ class AuthtenticationViewModel: ObservableObject {
             print("Errore rimozione token:", error)
         }
         
-        accessToken = nil
-        refreshToken = nil
         authToken = nil
         isLoggedIn = false
         isOTPvalid = false
@@ -263,4 +328,5 @@ class AuthtenticationViewModel: ObservableObject {
     }
 
 }
+
 
