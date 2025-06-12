@@ -4,6 +4,7 @@ import SwiftUI
 struct ProfileView: View {
     @StateObject var profileVM = ProfileViewModel(authVM: AuthtenticationViewModel())
     @EnvironmentObject var authVM: AuthtenticationViewModel
+    @StateObject var registrationVM: RegisterViewModel
     @State private var isLoggingOut = false
 
     var body: some View {
@@ -11,27 +12,25 @@ struct ProfileView: View {
             Color(hex: darkColor)
                 .ignoresSafeArea()
 
-            VStack(spacing: 20) {
+            VStack {
 //                Spacer()
                 Text("Profile")
                     .customFont(.bold, size: 35, hexColor: accentCustomColor)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    
-                Image(systemName: "person.circle")
-                    .resizable()
-                    .aspectRatio(1.0, contentMode: .fit)
-                    .frame(width: 100, height: 100)
-                    .foregroundStyle(Color.white)
-               
-                   
-             
-                Text(profileVM.userInfo.username)
-                    .customFont(.bold, size: 25, hexColor: accentCustomColor)
+
+
+                Text("@\(profileVM.userInfo.username)")
+                    .customFont(.bold, size: 25, hexColor: white)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 
-                Button {} label: {
-                    Text("Change Image")
-                        .customButton(typeBtn: .primary, width: 150, height: 40, cornerRadius: 8)
-                }
+//                Button {} label: {
+//                    Text("Change Image")
+//                        .customButton(typeBtn: .primary, width: 150, height: 40, cornerRadius: 8)
+//                }
+                ImagePickerView(selectedImageData: $profileVM.selectedImageData,
+                    onImageSelected: { image in
+                    profileVM.uploadProfileImage(image)
+                                    })
 
                 // Profilo utente
                 VStack(alignment: .leading, spacing: 10) {
@@ -67,6 +66,17 @@ struct ProfileView: View {
                       
                         .customButton(typeBtn: .tertiary, width: 350, height: 50, cornerRadius: 8)
                 }
+                
+                Button {
+//                    isLoggingOut = true
+                    authVM.deleteAccount()
+//                    authVM.isLoggedIn = false
+                } label: {
+                    Text("Delete Account")
+                        .customFont(.bold, size: 18, hexColor: redError)
+                      
+                        .customButton(typeBtn: .tertiary, width: 350, height: 50, cornerRadius: 8)
+                }
 
                 Spacer()
             }
@@ -81,5 +91,8 @@ struct ProfileView: View {
 }
 
 #Preview {
-    ProfileView()
+    let authVM = AuthtenticationViewModel()
+    let registrationVM = RegisterViewModel()
+    return ProfileView(registrationVM: registrationVM)
+        .environmentObject(authVM)
 }
