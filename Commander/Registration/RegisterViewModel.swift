@@ -1,5 +1,6 @@
 import Foundation
 import Alamofire
+import UIKit
 
 
 class RegisterViewModel: ObservableObject {
@@ -22,14 +23,14 @@ class RegisterViewModel: ObservableObject {
 //    @Published var selectedImageData: Data? = nil
 
     
-    
     private var emailDebounceTimer: Timer?
     private var usernameDebounceTimer: Timer?
     
     private var checkEmailURL = Environment.baseURL + "/check-email/"
+    private var checkPasswordURL = Environment.baseURL + "/check-password/"
     private var checkUsernameURL = Environment.baseURL + "/check-username/"
     private var registerUserURL = Environment.baseURL + "/register/"
-    
+
     
     var errorMessage = ""
     
@@ -63,11 +64,12 @@ class RegisterViewModel: ObservableObject {
             /// API CALL
             let paramsEmail = ["email": email]
             AF.request(self.checkEmailURL, method: .post, parameters: paramsEmail, encoding: JSONEncoding.default)
-                .responseDecodable(of: EmailTakenModel.self) { response in
+                .responseDecodable(of: EmailValidationResponseModel.self) { response in
                     switch response.result {
                     case .success(let result):
                         DispatchQueue.main.async {
                             self.isEmailTaken = result.email_taken
+                            
                         }
                     case .failure:
                         DispatchQueue.main.async {
@@ -103,16 +105,51 @@ class RegisterViewModel: ObservableObject {
             errors.append("Password must contain at least one special character.")
         }
         
-        isPasswordValid = errors.isEmpty
+//        isPasswordValid = errors.isEmpty
         
-        errorMessage = errors.first ?? ""
-        print(errors)
+        if errors.isEmpty {
+            /// checking with api also
+            validatePasswordViaAPI()
+        } else {
+            
+            isPasswordValid = false
+            errorMessage = errors.first ?? ""
+        }
         
         doPasswordsMatch = registrationData.password2.isEmpty || registrationData.password == registrationData.password2
         
         
     }
     
+    func validatePasswordViaAPI() {
+        let password = registrationData.password.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        guard !password.isEmpty else {
+            self.isPasswordValid = false
+            self.errorMessage = "Password cannot be empty"
+            return
+        }
+        
+        let params = ["password": password]
+        
+        AF.request(checkPasswordURL, method: .post, parameters: params, encoding: JSONEncoding.default)
+            .validate()
+            .responseDecodable(of: PasswordValidationResponseModel.self) { response in
+                DispatchQueue.main.async {
+                    switch response.result {
+                    case .success(let result):
+                        print("password also checked with api")
+                        self.isPasswordValid = result.password_valid
+                        self.errorMessage = result.error ?? ""
+                    case .failure(let error):
+                        print("Errore validazione password: \(error)")
+                        self.isPasswordValid = false
+                        self.errorMessage = "Errore di connessione al server"
+                    }
+                }
+            }
+    }
+
     func validateUsername() {
         /// TIMER
         usernameDebounceTimer?.invalidate()
@@ -146,6 +183,8 @@ class RegisterViewModel: ObservableObject {
             
         }
     }
+    
+
     
     func validateStep1() -> Bool {
         triedStep1 = true

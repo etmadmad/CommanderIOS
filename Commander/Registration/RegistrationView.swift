@@ -25,7 +25,6 @@ struct RegistrationRoot: View {
                     case .third:
                         ThirdRegistrationView1(path: $path)
                             .environmentObject(registrationVM)
-//                        
                     case .successfulRegistration:
                         RegistrationSuccessView(isSheetPresented: $isSheetPresented)
                             .environmentObject(registrationVM)
@@ -103,6 +102,7 @@ struct FirstRegistrationView1: View {
                         selection: $registrationVM.registrationData.date_of_birth,
                         displayedComponents: [.date]
                     )
+                    
                     .environment(\.colorScheme, .light)
                     .labelsHidden()
                     .colorMultiply(.white)
@@ -288,9 +288,43 @@ struct ThirdRegistrationView1: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                     
                   
-                    ImagePickerView(selectedImageData: $selectedImageData)
+//                    ImagePickerView(selectedImageData: $registrationVM.selectedImageData,
+//                        onImageSelected: { image in
+//                        registrationVM.uploadImage(image)
+//                                        })
                     
                     
+//                    .onChange(of: registrationVM.registrationSuccess) {
+//                        if registrationVM.registrationSuccess {
+//                            if let data = registrationVM.selectedImageData,
+//                               let image = UIImage(data: data) {
+//                                registrationVM.uploadImage(image)
+//                            }
+//                            path.append(.successfulRegistration)
+//                        }
+//                    }
+                    
+                    
+                    
+//                        .onChange(of: registrationVM.registrationSuccess) {
+//                            if registrationVM.registrationSuccess {
+//                                print("Registrazione riuscita. Tenterò di caricare immagine.")
+//                                
+//                                if let data = registrationVM.selectedImageData {
+//                                    print("Image data presente, grandezza: \(data.count) byte")
+//                                    if let image = UIImage(data: data) {
+//                                        registrationVM.uploadImage(image)
+//                                    } else {
+//                                        print("Non sono riuscito a creare UIImage da data")
+//                                    }
+//                                } else {
+//                                    print("selectedImageData è nil — niente immagine da caricare")
+//                                }
+//                                
+//                                path.append(.successfulRegistration)
+//                            }
+//                        }
+
                     InputView(inputText: $registrationVM.registrationData.username,
                               inputName: "Username",
                               placeholder: "Username",
