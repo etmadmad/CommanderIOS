@@ -1,26 +1,29 @@
 import SwiftUI
-
 struct TabBarView: View {
+    @EnvironmentObject var authViewModel: AuthtenticationViewModel
+
     var body: some View {
-        Spacer()
-        HStack{
-            TabView{
-                Tab("Home", systemImage: "house") {
-                    
-                }
-              
-                Tab("Map", systemImage: "map") {
-                    
-                }
-                
-                .badge("2")
-                Tab("Profile", systemImage: "person.fill") {
+        TabView {
+//            ManageTeamsView()
+            GameJoinView()
+                .tabItem {
+                    Label("Home", systemImage: "house")
                 }
 
-            }
+            MapView()
+                .tabItem {
+                    Label("Map", systemImage: "map")
+                }
+
+            NavigationStack {
+                  ProfileView(registrationVM: RegisterViewModel())
+              }
+              .tabItem {
+                  Label("Profile", systemImage: "person.fill")
+              }
         }
-        .border(Color.red)
-        .fixedSize(horizontal: false, vertical: true)
+        .toolbarBackground(.indigo, for: .tabBar)
+        .toolbarBackground(.visible, for: .tabBar)
     }
 }
 

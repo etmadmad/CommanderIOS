@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		7E098A9E2DDF096300CEDDC8 /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = 7E098A9D2DDF096300CEDDC8 /* KeychainAccess */; };
-		7E3E460B2DD36D770095ECC2 /* ciao.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E3E460A2DD36D770095ECC2 /* ciao.swift */; };
 		7EAFA9952DCC9CB000DDCBC0 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 7EAFA9942DCC9CA800DDCBC0 /* .gitignore */; };
 		7EE9740E2DCE17B900D50F45 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 7EE9740D2DCE17B900D50F45 /* Alamofire */; };
 /* End PBXBuildFile section */
@@ -31,7 +30,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		7E3E460A2DD36D770095ECC2 /* ciao.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ciao.swift; sourceTree = "<group>"; };
 		7EAFA9332DCC990F00DDCBC0 /* Commander.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Commander.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7EAFA9432DCC991000DDCBC0 /* CommanderTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CommanderTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		7EAFA94D2DCC991000DDCBC0 /* CommanderUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CommanderUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -104,7 +102,6 @@
 		7EAFA92A2DCC990F00DDCBC0 = {
 			isa = PBXGroup;
 			children = (
-				7E3E460A2DD36D770095ECC2 /* ciao.swift */,
 				7EAFA9942DCC9CA800DDCBC0 /* .gitignore */,
 				7EAFA9352DCC990F00DDCBC0 /* Commander */,
 				7EAFA9462DCC991000DDCBC0 /* CommanderTests */,
@@ -276,7 +273,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7E3E460B2DD36D770095ECC2 /* ciao.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -443,6 +439,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Commander/Info.plist;
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "This app needs your location always to provide continuous tracking, even in the background.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app needs your location to function properly, even when the app is in the background.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -475,6 +473,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Commander/Info.plist;
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "This app needs your location always to provide continuous tracking, even in the background.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app needs your location to function properly, even when the app is in the background.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

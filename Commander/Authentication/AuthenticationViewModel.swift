@@ -19,7 +19,27 @@ struct Environment {
         print("API URL:", fullURL)
         return fullURL
     }
+    
+//    static var staticFileBaseURL: String {
+//           let scheme = getConfigValue(forKey: "API_SCHEME")
+//           let host = getConfigValue(forKey: "API_BASE_URL")
+//           return "\(scheme)://\(host)" // 🚫 niente `/api`
+//       }
 
+
+    static var imageBaseURL: String {
+        let scheme = getConfigValue(forKey: "API_SCHEME")
+        let host = getConfigValue(forKey: "IMAGE_BASE_URL")
+        
+        let fullURL = "\(scheme)://\(host)"
+        
+        guard let validatedURL = URL(string: fullURL), UIApplication.shared.canOpenURL(validatedURL) else {
+            fatalError("Invalid Image URL formed: \(fullURL)")
+        }
+
+        return fullURL
+    }
+    
     private static func getConfigValue(forKey key: String) -> String {
         guard let value = Bundle.main.object(forInfoDictionaryKey: key) as? String else {
             fatalError("\(key) not found in Info.plist")

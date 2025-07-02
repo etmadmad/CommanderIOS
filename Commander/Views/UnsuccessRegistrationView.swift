@@ -17,11 +17,11 @@ struct InvalidEmailDomainView: View {
                     .frame(width: 100, height: 100)
                     .foregroundColor(.red)
                 
-                Text("Invalid Email Domain")
+                Text("Unsuccessful Registration")
                     .customFont(.bold, size: 28, hexColor: "FFFFFF")
                     .multilineTextAlignment(.center)
                 
-                Text("The email domain you entered does not exist. Please check your email and try again.")
+                Text("Unsuccessful Registration. Please try again later.")
                     .customFont(.regular, size: 16, hexColor: "FFFFFF")
                     .opacity(0.7)
                     .multilineTextAlignment(.center)

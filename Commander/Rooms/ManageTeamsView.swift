@@ -6,15 +6,13 @@ struct StartRoomBarView: View {
     
     var body: some View {
         ZStack {
-            // Sfondo opacizzato
             Rectangle()
-                .fill(Color(hex: grayDetails)) // Puoi cambiare colore e opacità
-                .frame(height: 80) // Altezza dello sfondo
+                .fill(Color(hex: grayDetails))
+                .frame(height: 80)
                 .frame(maxWidth: .infinity)
                 .ignoresSafeArea(edges: .horizontal)
 
 
-            // Contenuto effettivo
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("PrimoNero's Room")
@@ -131,9 +129,6 @@ struct ManageTeamsView: View {
     }
 }
 
-//#Preview {
-//    StartRoomBarView()
-//}
 
 #Preview{
     ManageTeamsView()

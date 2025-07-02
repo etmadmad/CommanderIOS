@@ -1,10 +1,8 @@
-
 import SwiftUI
 
-
-struct JoinRoomView: View {
-    @StateObject var roomInfoViewModel = RoomInfoViewModel()
-
+struct GameJoinView: View {
+    @StateObject var gameConfigVM = GameConfigurationViewModel()
+    
     var body: some View {
         NavigationStack {
             ZStack {
@@ -13,7 +11,7 @@ struct JoinRoomView: View {
 
                 VStack(spacing: 24) {
                     Spacer()
-                    // Header
+                    
                     HStack {
                         Text("Commander")
                             .customFont(.bold, size: 30, hexColor: accentCustomColor)
@@ -27,11 +25,10 @@ struct JoinRoomView: View {
                     }
                     .padding(.top, 20)
 
-                    // Input
                     VStack(spacing: 8) {
-                        InputView(inputText: $roomInfoViewModel.roomCode, inputName: "Enter Room Code", placeholder: "#00FF33")
+                        InputView(inputText: $gameConfigVM.roomCode, inputName: "Enter Room Code", placeholder: "#00FF33")
                         
-                        if roomInfoViewModel.triedToJoin && roomInfoViewModel.roomCode.isEmpty {
+                        if gameConfigVM.triedToJoin && gameConfigVM.roomCode.isEmpty {
                             Text("Room not available")
                                 .foregroundColor(.red)
                                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -41,7 +38,7 @@ struct JoinRoomView: View {
 
                     // Join button
                     Button(action: {
-                        roomInfoViewModel.joinRoom()
+                        gameConfigVM.joinGame()
                     }) {
                         Text("Join Room")
                     }
@@ -63,16 +60,14 @@ struct JoinRoomView: View {
                             
                             ScrollView {
                                 LazyVStack(spacing: 16) {
-                                    ForEach(0..<5) { _ in
-                                        YourRoomsView(infoRoom: RoomInfoModel(
-                                            configurationName: "Insalata creatiaaaaaaaaaa",
-                                            gameMode: "Deathmatch"),
-                                            nameRoom: "Primonero",
-                                            typeRoom: "Bomb")
+                                    ForEach(gameConfigVM.gameConfigurationModel.founderGames, id: \.id) { game in
+                                        YourRoomsView(game: game)
                                     }
                                 }
+                                
                                 .padding()
                             }
+                            
                         }
                         .frame(height: 246)
                         .clipShape(RoundedRectangle(cornerRadius: 16))
@@ -82,15 +77,10 @@ struct JoinRoomView: View {
                     Spacer()
                 }
                 .padding(.horizontal, 24)
-//                TabBarView()
+
             }
         }
     }
 }
 
 
-
-
-#Preview {
-    JoinRoomView()
-}

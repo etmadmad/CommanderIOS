@@ -7,6 +7,10 @@ var black: String = "#000000"
 var grayDetails: String = "#747474"
 var redError: String = "#ff0033"
 
+var bombColor: String = "#EA33F7"
+var swordsColor: String = "#75FBFD"
+var skullColor: String = "#F19E39"
+
 extension Color {
     init(hex: String) {
         let hex = hex.trimmingCharacters(in: .whitespacesAndNewlines)

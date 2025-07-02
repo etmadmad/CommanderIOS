@@ -28,22 +28,6 @@ struct CountdownView: View {
                     .foregroundColor(.green)
             }
             .frame(width: 200, height: 200)
-
-//            Button(action: {
-//                if isRunning {
-//                    stopTimer()
-//                } else {
-//                    startTimer()
-//                }
-//                isRunning.toggle()
-//            }) {
-//                Text(isRunning ? "Pausa" : "Avvia")
-//                    .font(.title)
-//                    .padding()
-//                    .background(Color.green)
-//                    .foregroundColor(.white)
-//                    .cornerRadius(10)
-//            }
         }
         .padding()
         .onAppear() {

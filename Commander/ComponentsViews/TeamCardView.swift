@@ -1,52 +1,12 @@
 import SwiftUI
 
-//
-//struct TeamsCardview: View {
-//    var numberTeam: Int
-//    var teamColorCard: String
-//    
-//    var body: some View {
-//        VStack(spacing: 40) {
-//            
-//            Text("Team")
-//                .font(.system(size: 30))
-//                .fontWeight(.bold)
-//                .foregroundStyle(Color.white)
-//                .frame(maxWidth: .infinity, alignment: .leading)
-//                .padding(.horizontal)
-//            Text("1")
-//                .font(.system(size: 100))
-//                .foregroundStyle(Color.white)
-//                
-//            Button("View") {}
-//                .customButton(
-//                    typeBtn: .tertiary,
-//                    width: 120,
-//                    height: 40,
-//                    cornerRadius: 10
-//                )
-//            
-//        }
-//        .frame(minWidth: 170, maxWidth: .infinity, minHeight: 320)
-//        .background(
-//            RoundedRectangle(cornerRadius: 24)
-//                .foregroundStyle(Color(hex: teamColorCard))
-//        )
-//        
-//    }
-//}
-//
-//#Preview {
-//    TeamsCardview(numberTeam: 2, teamColorCard: "#233445")
-//}
-
-
 
 struct TeamsCardview: View {
-    var numberTeam: Int
     var teamColorCard: String
+    var members: [String]
+    var onMemberDropped: (String) -> Void
 
-    @State private var members: [String] = []
+    @State private var showSheet = false
 
     var body: some View {
         VStack(spacing: 20) {
@@ -57,50 +17,65 @@ struct TeamsCardview: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal)
 
-            Text("\(numberTeam)")
+            Text("\(members.count)")
                 .font(.system(size: 100))
                 .foregroundStyle(Color.white)
 
-            Button("View") {}
-                .customButton(
-                    typeBtn: .tertiary,
-                    width: 120,
-                    height: 40,
-                    cornerRadius: 10
-                )
-
-            VStack(alignment: .leading, spacing: 5) {
-                ForEach(members, id: \.self) { member in
-                    Text(member)
-                        .font(.caption)
-                        .foregroundColor(.white)
-                        .padding(4)
-                        .background(Color.white.opacity(0.2))
-                        .cornerRadius(6)
-                }
+            Button("View") {
+                showSheet = true
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal)
+            .customButton(
+                typeBtn: .tertiary,
+                width: 120,
+                height: 40,
+                cornerRadius: 10
+            )
         }
         .frame(minWidth: 170, maxWidth: .infinity, minHeight: 320)
         .background(
             RoundedRectangle(cornerRadius: 24)
                 .foregroundStyle(Color(hex: teamColorCard))
         )
+        .onTapGesture {
+            showSheet = true
+        }
         .onDrop(of: [.text], isTargeted: nil) { providers in
             if let provider = providers.first {
                 _ = provider.loadObject(ofClass: NSString.self) { object, _ in
                     if let username = object as? String {
                         DispatchQueue.main.async {
-                            if !members.contains(username) {
-                                members.append(username)
-                            }
+                            onMemberDropped(username)
                         }
                     }
                 }
                 return true
             }
             return false
+        }
+        .sheet(isPresented: $showSheet) {
+            ZStack {
+                Color(hex: darkColor)
+                    .ignoresSafeArea(.all, edges: .all)
+                VStack {
+                    Text("Players in Team")
+                        .font(.title)
+                        .padding()
+                    if members.isEmpty {
+                        Text("No players assigned.")
+                            .foregroundColor(.secondary)
+                    } else {
+                        List(members, id: \.self) { member in
+                            Text(member)
+                        }
+                    }
+                    Button("Close") {
+                        showSheet = false
+                    }
+                    .padding()
+                }
+            }
+
+            .presentationDetents([.medium])
         }
     }
 }

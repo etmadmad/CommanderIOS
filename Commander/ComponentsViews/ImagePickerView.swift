@@ -3,6 +3,7 @@ import PhotosUI
 struct ImagePickerView: View {
     @State private var selectedItem: PhotosPickerItem? = nil
     @Binding var selectedImageData: Data?
+    var onImageSelected: ((UIImage) -> Void)? = nil
 
     var body: some View {
         VStack {
@@ -34,10 +35,13 @@ struct ImagePickerView: View {
             .padding(24)
             .onChange(of: selectedItem) { newItem in
                 Task {
-                    
                     if let data = try? await newItem?.loadTransferable(type: Data.self) {
                         selectedImageData = data
+                        if let image = UIImage(data: data) {
+                            onImageSelected?(image)
+                        }
                     }
+
                 }
             }
         }

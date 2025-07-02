@@ -56,3 +56,9 @@ struct TokenUserExpired: Decodable {
 struct RefreshTokenResponseModel: Decodable {
     var access: String
 }
+
+
+struct DeleteAccountsResponseModel: Decodable {
+    var detail: String
+    var code: String
+}

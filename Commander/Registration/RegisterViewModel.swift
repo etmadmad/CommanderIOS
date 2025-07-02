@@ -5,6 +5,7 @@ import UIKit
 
 class RegisterViewModel: ObservableObject {
     @Published var registrationData = UserRegistrationModel()
+    @Published var changePasswordData = ChangePasswordModel()
     
     @Published var triedStep1: Bool = false
     @Published var triedStep2: Bool = false
@@ -175,7 +176,6 @@ class RegisterViewModel: ObservableObject {
                             self.isUsernameTaken = result.username_taken
                             print("chiamata af fatta, username taken:", result)
                         case .failure:
-                            
                             self.isUsernameTaken = false
                         }
                     }
