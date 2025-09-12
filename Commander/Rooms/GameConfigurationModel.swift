@@ -1,7 +1,4 @@
-
-
 import Foundation
-
 
 struct BombDetails: Codable {
     let bombCoordinateX: String
@@ -55,10 +52,59 @@ struct CreateSessionModel: Decodable {
 
 struct JoinGameResponse: Decodable {
     let detail: String?
-    let sessionRoomCode: [String]?
+    let session_room_code: String?
     
+}
+
+struct PlayersInSessionResponse: Decodable {
+    let players: [PlayerModel]
+}
+
+struct PlayerModel: Decodable {
+    let id: String
+    let username: String
+    let player_status: String
+    let profile_image: String?
+}
+
+struct LeaveSessionResponseModel: Decodable {
+    let detail: String
+}
+
+struct SessionConfigResponseModel: Codable {
+    let id, configurationName, configurationDescription: String
+    let maxPlayers: Int
+    let gameModeName: String
+    let bombDetails: BombDetails?
+    let matchDurationMinutes: Int
+
     enum CodingKeys: String, CodingKey {
-        case detail
-        case sessionRoomCode = "session_room_code"
+        case id
+        case configurationName = "configuration_name"
+        case configurationDescription = "configuration_description"
+        case maxPlayers = "max_players"
+        case gameModeName = "game_mode_name"
+        case bombDetails = "bomb_details"
+        case matchDurationMinutes = "match_duration_minutes"
     }
+}
+
+struct Player: Identifiable, Codable, Hashable {
+    var id: String { username }
+    var username: String
+    var profileImageURL: String? // la riempiamo con la chiamata API successiva
+}
+
+struct UserImageResponse: Codable {
+    let profile_image: String
+}
+
+struct TeamsModel: Codable {
+    let id: String?
+    let team_name: String
+}
+ 
+struct SessionStartedResponse: Codable {
+    let detail: String?
+    let non_field_errors: String?
 }
