@@ -1,109 +1,158 @@
-//import SwiftUI
-//
-//struct WaitingForTeamsView: View {
-//    let roomName: String
-//    let roomCode: String
-//
-//    var body: some View {
-//        ZStack {
-//            Color(hex: darkColor)
-//                .ignoresSafeArea()
-//
-//            VStack(spacing: 32) {
-//                Text(roomName)
-//                    .customFont(.bold, size: 35, hexColor: accentCustomColor)
-//                    .frame(maxWidth: .infinity, alignment: .leading)
-//
-//                VStack(spacing: 12) {
-//                    Text("Codice stanza")
-//                        .customFont(.semibold, size: 18, hexColor: "AAAAAA")
-//                        .frame(maxWidth: .infinity, alignment: .leading)
-//                    Text(roomCode)
-//                        .customFont(.bold, size: 28, hexColor: accentCustomColor)
-//                        .padding(.bottom, 8)
-//                }
-//                .frame(maxWidth: .infinity, alignment: .leading)
-//
-//                Spacer()
-//
-//                VStack(spacing: 20) {
-//                    ProgressView()
-//                        .progressViewStyle(CircularProgressViewStyle(tint: Color(hex: accentCustomColor)))
-//                        .scaleEffect(1.5)
-//                    
-//                    Text("In attesa che l'admin crei le squadre...")
-//                        .customFont(.bold, size: 24, hexColor: white)
-//                        .multilineTextAlignment(.center)
-//                    
-//                    Text("Appena le squadre saranno pronte, potrai partecipare alla partita.")
-//                        .customFont(.regular, size: 17, hexColor: grayDetails)
-//                        .multilineTextAlignment(.center)
-//                        .padding(.horizontal)
-//                }
-//
-//                Spacer()
-//            }
-//            .padding(24)
-//        }
-//    }
-//}
-//#Preview {
-//    WaitingForTeamsView(roomName: "Room Epica", roomCode: "ABC123")
-//}
-//
 
 
 import SwiftUI
 
 struct WaitingForTeamsView: View {
-    let roomName: String
-    let roomCode: String
-//    let descriptionRoom: String
-
+    @ObservedObject var gameConfigVM: GameConfigurationViewModel
+    
+    
     var body: some View {
         ZStack {
             Color(hex: darkColor)
                 .ignoresSafeArea()
-
-            VStack(spacing: 32) {
-                Text(roomName)
-                    .customFont(.bold, size: 35, hexColor: accentCustomColor)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                Text(roomName)
-                    .customFont(.bold, size: 35, hexColor: accentCustomColor)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                VStack(spacing: 12) {
-                 
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-
+            
+            VStack() {
+                
                 Spacer()
-
-                VStack(spacing: 20) {
+                
+                VStack(){
+                    
+                    Text(gameConfigVM.configurationNameSession)
+                        .font(.system(size: 25, weight: .bold))
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .foregroundStyle(Color(hex: accentCustomColor))
+                    Text("Waiting for the admin to create the teams...")
+                        .font(.system(size: 12, weight: .regular))
+                        .multilineTextAlignment(.center)
+                        .padding(.bottom, 10)
                     ProgressView()
                         .progressViewStyle(CircularProgressViewStyle(tint: Color(hex: accentCustomColor)))
                         .scaleEffect(1.5)
                     
-                    Text("Waiting for the admin to create the teams...")
-                        .customFont(.bold, size: 24, hexColor: white)
-                        .multilineTextAlignment(.center)
+                    GameSummaryCardView(
+                        gameConfigVM: gameConfigVM,
+                        darkColor: darkColor,
+                        accentCustomColor: accentCustomColor
+                    )
                     
-                    Text("As soon as the teams are ready, you will be able to join the match.")
-                        .customFont(.regular, size: 17, hexColor: grayDetails)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal)
+                    
+                    
                 }
-
+                Spacer()
+                
                 Spacer()
             }
+            
+            
             .padding(24)
         }
+        .onDisappear {
+            print("👋 Leaving WaitingForTeamsView...")
+            
+            if let sessionId = gameConfigVM.currentSessionId {
+                gameConfigVM.leaveGameSession(gameId: sessionId)
+            }
+        }
+        
+        
+        
+        
     }
 }
+    
+    
+    struct GameSummaryCardView: View {
+        @ObservedObject var gameConfigVM: GameConfigurationViewModel
+        let darkColor: String
+        let accentCustomColor: String
+        
+        var body: some View {
+            VStack(spacing: 15) {
+                
+                GameInfoRow(
+                    title: "Game Mode",
+                    value: gameConfigVM.gameModeSession,
+                    iconName: "swordsIcon",
+                    isSFSymbol: false,
+                    accentColor: Color(hex: accentCustomColor)
+                )
+                
+                Divider()
+                    .background(Color.gray.opacity(0.5))
+                
+                
+                GameInfoRow(
+                    title: "Max players",
+                    value: "\(gameConfigVM.maxPlayersSession) players",
+                    iconName: "person.fill",
+                    isSFSymbol: true,
+                    accentColor: Color(hex: accentCustomColor)
+                )
+                
+                Divider()
+                    .background(Color.gray.opacity(0.5))
+                
+                
+                GameInfoRow(
+                    title: "Duration",
+                    value: "\(gameConfigVM.gameTimeSession) minutes",
+                    iconName: "clock",
+                    isSFSymbol: true,
+                    accentColor: Color(hex: accentCustomColor)
+                )
+            }
+            .padding()
+            .background(Color(hex: darkColor).opacity(0.4))
+            .cornerRadius(15)
+            .overlay(
+                RoundedRectangle(cornerRadius: 15)
+                    .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+            )
+            .padding(.horizontal, 24)
+            .padding(.vertical, 20)
+        }
+    }
+    
+    
+    struct GameInfoRow: View {
+        let title: String
+        let value: String
+        let iconName: String
+        let isSFSymbol: Bool
+        let accentColor: Color
+        
+        var body: some View {
+            HStack(spacing: 15) {
+                ZStack {
+                    Circle()
+                        .fill(accentColor.opacity(0.1))
+                        .frame(width: 40, height: 40)
+                    
+                    if isSFSymbol {
+                        Image(systemName: iconName)
+                            .font(.system(size: 20))
+                            .foregroundColor(accentColor)
+                    } else {
+                        Image(iconName)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 20, height: 20)
+                            .foregroundColor(accentColor)
+                    }
+                }
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(.system(size: 14, weight: .regular))
+                        .foregroundColor(.gray)
+                    
+                    Text(value)
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundColor(.white)
+                }
+                
+                Spacer()
+            }
+        }
+    }
 
-//
-//#Preview {
-//    WaitingForTeamsView(roomName: "Epic Room", roomCode: "ABC123")
-//}
