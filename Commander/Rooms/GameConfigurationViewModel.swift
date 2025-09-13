@@ -1,6 +1,7 @@
 import Foundation
 import Alamofire
 import KeychainAccess
+import SwiftUI
 
 class GameConfigurationViewModel: ObservableObject {
     /// MODELS
@@ -25,7 +26,16 @@ class GameConfigurationViewModel: ObservableObject {
     
     @Published var didSessionStart: Bool = false
     @Published var showAlert: Bool = false
+
+    ///FOR NAVIGATION
+    @Published var goToManageTeams: Bool = false
+    @Published var isGameStarted: Bool = false {
+        didSet {
+            print("isGameStarted è cambiata: ORA è \(isGameStarted) su thread: \(Thread.current)")
+        }
+    }
     
+ 
     /// FOR PLAYERS
     @Published var joinedPlayers: [Player] = []{
         didSet {
@@ -83,7 +93,7 @@ class GameConfigurationViewModel: ObservableObject {
                         case .success(let result):
                             self.getSessionConfiguration(gameId: self.roomCode)
                             self.didJoinSuccessfully = true
-                            
+                            print("didJoinSuccessfully: \(self.didJoinSuccessfully)")
                             self.manager = WebSocketSessionManager(sessionRoomCode: self.roomCode, viewModel: self)
                             self.manager?.start()
                             self.currentSessionId = self.roomCode
@@ -193,10 +203,14 @@ class GameConfigurationViewModel: ObservableObject {
                 DispatchQueue.main.async {
                     switch response.result {
                     case .success(let detail):
-                        print("Succesfully left session: \(detail)")
-                        self.manager = WebSocketSessionManager(sessionRoomCode: gameId, viewModel: GameConfigurationViewModel())
-                        self.manager?.close()
-                        
+                        print("👋 Succesfully left session: \(detail)")
+//                        self.manager = WebSocketSessionManager(sessionRoomCode: gameId)
+//                        self.manager?.close()
+                        self.manager = nil
+
+                         self.currentSessionId = nil
+//                         self.path = NavigationPath()
+                        print("GAME STARTED? \(self.isGameStarted)")
                         
                     case .failure(let error):
                         print("ERROR: \(error)")
@@ -427,8 +441,8 @@ class GameConfigurationViewModel: ObservableObject {
                 switch response.result {
                 case .success(let imageResponse):
                     print("✅ JSON ricevuto:", imageResponse)
-                    
-           
+                    self.isGameStarted = true
+                    print("GAME STARTED??? \(self.isGameStarted)")
                 
                 case .failure(let error):
                     print("❌ Errore nella richiesta: \(error)")
@@ -437,75 +451,3 @@ class GameConfigurationViewModel: ObservableObject {
     }
     
 }
-
-//    func getPlayersInSession(gameId: String) {
-//
-//        guard let token = try? keychain.get("accessToken") else {
-//            print("Token not found")
-//            return
-//        }
-//
-//        let headers: HTTPHeaders = [
-//            "Authorization": "Bearer \(token)",
-//            "Accept": "application/json"
-//        ]
-//
-//        let URLUserImage = "\(Environment.baseURL)/sessions/\(gameId)/players/"
-//
-//        AF.request(URLUserImage, method: .get, headers: headers)
-//            .validate()
-//            .responseDecodable(of: UserImageResponse.self) { response in
-//                switch response.result {
-//                case .success(let imageResponse):
-//                    print("✅ JSON ricevuto:", imageResponse)
-//
-//
-//                case .failure(let error):
-//                    print("❌ Errore nella richiesta: \(error)")
-//                }
-//            }
-//    }
-    
-    
-    //    func joinGame () {
-    //        guard let token = try? keychain.get("accessToken") else {
-    //            print("Token not found")
-    //            return
-    //        }
-    //
-    //        let headers: HTTPHeaders = [
-    //            "Authorization": "Bearer \(token)",
-    //            "Accept": "application/json"
-    //        ]
-    //
-    //        triedToJoin = true
-    //        if !roomCode.isEmpty {
-    //            print("roomCode sendato")
-    //
-    //            let parameters: [String: Any] = [
-    //                "session_room_code": roomCode
-    //            ]
-    //            print("URL: \(joinGameSession)")
-    //            print("Token: \(token)")
-    //            print("Parameters: \(parameters)")
-    //            AF.request(joinGameSession, method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: headers)
-    //                .validate()
-    //                .responseDecodable(of: JoinGameResponse.self) { response in
-    //                    DispatchQueue.main.async {
-    //                        switch response.result {
-    //                        case .success(let result):
-    //                            print("RESPONSE BODY: \(result)")
-    //                            self.getSessionConfiguration(gameId: self.roomCode)
-    //                        case .failure(let error):
-    //                            print("ERROR ethi: \(error)")
-    //                        }
-    //                    }
-    //                }
-    //        }
-    //
-    //        else{
-    //            print("devi inserire qualcosa")
-    //        }
-    //    }
-
-   
