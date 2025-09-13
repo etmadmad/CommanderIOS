@@ -31,28 +31,47 @@ class WebSocketSessionManager {
                 case .string(let text):
                     print("Ricevuto messaggio: \(text)")
            
-                    if let data = text.data(using: .utf8) {
-                        do {
-                            let event = try JSONDecoder().decode(PlayerStatusEvent.self, from: data)
-                            print("Evento decodificato: \(event)")
-                            
-                            if event.type == "player_joined", let username = event.username {
-                                print("CRISTODIO: Giocatore unito: \(username)")
+
+                    
+                if let data = text.data(using: .utf8) {
+                    do {
+                        let event = try JSONDecoder().decode(PlayerStatusEvent.self, from: data)
+                        print("Evento decodificato: \(event)")
+
+                        switch event.type {
+                        case "player_joined":
+                            if let username = event.username {
+                                print("Giocatore unito: \(username)")
                                 DispatchQueue.main.async {
-                                    let newPlayer = Player(
-//                                        id: event.player_id,
-                                        username: username,
-                                        profileImageURL: nil // lo recuperiamo dopo
-                                    )
-                                    
+                                    let newPlayer = Player(username: username, profileImageURL: nil)
                                     self?.viewModel?.addPlayer(newPlayer)
                                 }
                             }
-            
-                        } catch {
-                            print("Errore decodifica JSON: \(error)")
+
+                        case "session_started":
+                            print("Evento session_started ricevuto → imposto isGameStarted = true")
+                            DispatchQueue.main.async {
+                                self?.viewModel?.isGameStarted = true
+                   
+
+                            }
+
+                        case "session_ended":
+                            print("Evento session_ended ricevuto → imposto isGameStarted = false")
+                            DispatchQueue.main.async {
+                                self?.viewModel?.isGameStarted = false
+                                self?.viewModel?.didJoinSuccessfully = false
+                            }
+
+                        default:
+                            print("Evento \(event.type) ignorato")
                         }
+
+                    } catch {
+                        print("Errore decodifica JSON: \(error)")
                     }
+                }
+
                 case .data(let data):
                     print("Ricevuti dati binari: \(data)")
                 @unknown default:
@@ -73,5 +92,6 @@ class WebSocketSessionManager {
         webSocketTask?.cancel(with: .goingAway, reason: nil)
         print("Websocket CLOSEDSDDD")
     }
+    
+    
 }
-
