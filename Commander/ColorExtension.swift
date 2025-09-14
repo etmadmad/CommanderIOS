@@ -1,11 +1,13 @@
 import SwiftUI
 
 var accentCustomColor: String = "#00FF33"
-var darkColor: String = "#121212"
+var darkColor: String = "#FF121212"
 var white: String = "#ffffff"
 var black: String = "#000000"
-var grayDetails: String = "#747474"
+var grayDetails: String = "#FF262626"
+var lightGray: String = "AAAAAA"
 var redError: String = "#ff0033"
+var darkRed: String = "#B5170C"
 
 var bombColor: String = "#EA33F7"
 var swordsColor: String = "#75FBFD"
