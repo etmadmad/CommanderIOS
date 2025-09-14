@@ -7,59 +7,68 @@ struct RoomCodeWrapper: Identifiable {
 
 struct YourRoomsView: View {
     let game: FounderGame
-    @ObservedObject var gameConfigVM = GameConfigurationViewModel()
+    @EnvironmentObject var gameConfigVM: GameConfigurationViewModel
     @State private var sessionRoomCode: RoomCodeWrapper? = nil
-    @State private var goToManageTeams = false
+    
+    @State private var showRoomModal = false
+    @State private var showFreeForAllLobby = false
+    @State private var sessionIdForLobby: String = ""
+    @State private var roomTitleForLobby: String = ""
+//    @EnvironmentObject var gameConfigVM: GameConfigurationViewModel
 
+    
+    @State private var didClickBtnModal = false
+    
     var radius: CGFloat = 30
     var squareSide: CGFloat {
         2.0.squareRoot() * radius
     }
-
+    
     var body: some View {
-        HStack {
+        HStack(alignment: .center, spacing: 16) {
+            // Icona modalità
             ZStack {
+                Circle()
+                    .fill(Color(hex: darkColor))
+                    .frame(width: radius * 2, height: radius * 2)
+                
                 if game.game_mode_name == "Free for All" {
-                    Circle()
-                        .fill(Color(hex: swordsColor))
-                        .frame(width: radius * 2, height: radius * 2)
                     Image("swordsIcon")
                         .resizable()
                         .aspectRatio(1.0, contentMode: .fit)
-                        .frame(width: squareSide, height: squareSide)
-                }
-                if game.game_mode_name == "Bomb Defuse" {
-                    Circle()
-                        .fill(Color(hex: bombColor))
-                        .frame(width: radius * 2, height: radius * 2)
+                        .frame(width: squareSide * 0.8, height: squareSide * 0.8)
+                        .foregroundStyle(Color(hex: swordsColor))
+                } else if game.game_mode_name == "Bomb Defuse" {
                     Image("bombIcon")
                         .resizable()
                         .aspectRatio(1.0, contentMode: .fit)
-                        .frame(width: squareSide, height: squareSide)
-                }
-                if game.game_mode_name == "Team Deathmatch" {
-                    Circle()
-                        .fill(Color(hex: skullColor))
-                        .frame(width: radius * 2, height: radius * 2)
+                        .frame(width: squareSide * 0.8, height: squareSide * 0.8)
+                        .foregroundStyle(Color(hex: bombColor))
+                } else if game.game_mode_name == "Team Deathmatch" {
                     Image("skullIcon")
                         .resizable()
                         .aspectRatio(1.0, contentMode: .fit)
-                        .frame(width: squareSide, height: squareSide)
+                        .frame(width: squareSide * 0.8, height: squareSide * 0.8)
+                        .foregroundStyle(Color(hex: skullColor))
                 }
             }
-            .padding(.leading, 16)
-
-            VStack(alignment: .leading) {
+            
+            // Titolo e sottotitolo
+            VStack(alignment: .leading, spacing: 4) {
                 Text(game.configurationName)
-                    .customFont(.regular, size: 18, hexColor: white)
+                    .font(.system(size: 18, weight: .regular))
+                    .foregroundStyle(Color(hex: white))
                     .lineLimit(1)
                     .truncationMode(.tail)
+                
                 Text(game.game_mode_name)
-                    .customFont(.regular, size: 14, hexColor: white)
+                    .font(.system(size: 14, weight: .light))
+                    .foregroundStyle(Color(hex: white))
             }
-
+            
             Spacer()
-
+            
+            // Bottone Play
             Button {
                 gameConfigVM.createGameSession(gameId: game.id) { session in
                     guard let session = session else {
@@ -73,29 +82,56 @@ struct YourRoomsView: View {
                     }
                 }
             } label: {
-                Text("Start Room")
-                    .customFont(.regular, size: 12, hexColor: darkColor)
-            }
-//            .sheet(item: $sessionRoomCode) { wrapper in
-//                RoomCodeModalView(roomName: game.configurationName, roomCode: wrapper.code) {
-//                    sessionRoomCode = nil
-//                }
-//                .presentationDetents([.medium])
-//            }
-            .sheet(item: $sessionRoomCode) { wrapper in
-                RoomCodeModalView(roomName: game.configurationName, roomCode: wrapper.code) {
-                    sessionRoomCode = nil  // chiudi la sheet
-                    goToManageTeams = true // triggera la navigation
+                ZStack {
+                    Circle()
+                        .fill(Color(hex: white))
+                        .frame(width: radius * 1.5, height: radius * 1.5)
+                    
+                    Image(systemName: "play.fill")
+                        .foregroundStyle(Color(hex: darkColor))
                 }
-                .presentationDetents([.medium])
             }
-            .customButton(typeBtn: .secondary, width: 100, height: 30, cornerRadius: 10)
+            .padding(.trailing, 10)
+                        .sheet(item: $sessionRoomCode, onDismiss: {
+        
+                            didClickBtnModal = false
+                        }) { wrapper in
+                            RoomCodeModalView(
+                                roomName: game.configurationName,
+                                gameModeRoom: game.game_mode_name,
+                                maxPlayersRoom: game.maxPlayers,
+                                durationRoom: game.matchDurationMinutes,
+                                roomCode: wrapper.code
+                            ) {
+                                
+                                didClickBtnModal = true
+                                gameConfigVM.goToManageTeams = true
+                                sessionRoomCode = nil
+                            }
+//                            } onStartGame: {
+//
+//                                didClickBtnModal = true
+//                                gameConfigVM.isGameStarted = true
+//                                sessionRoomCode = nil
+//                            }
+                            onJoin: {
+                                // join premuto in RoomCodeModalView -> chiudo modal e apro lobby (solo admin dovrebbe arrivare qui)
+                                didClickBtnModal = true
+                                gameConfigVM.goToLobbyFFA = true
+                                sessionRoomCode = nil
+                            }
+                            .interactiveDismissDisabled(false)
+                        }
 
-            Spacer()
-        }
-        .navigationDestination(isPresented: $goToManageTeams) {
-            ManageTeamsView()
+                    }
+
         }
     }
-}
+    
+    
+    
+    
+    
+    
+    
 
