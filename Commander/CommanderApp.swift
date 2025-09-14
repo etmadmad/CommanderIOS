@@ -50,6 +50,10 @@ struct CommanderApp: App {
     @StateObject var authViewModel = AuthtenticationViewModel()
     @StateObject var gameConfigVM = GameConfigurationViewModel()
     
+    @StateObject var profileVM = ProfileViewModel(authVM: AuthtenticationViewModel())
+    
+    
+    
 //    @State private var gameConfigVM = GameConfigurationViewModel()
 
     var body: some Scene {
@@ -60,6 +64,8 @@ struct CommanderApp: App {
                         TabBarView()
                             .environmentObject(authViewModel)
                             .environmentObject(gameConfigVM)
+                            .environmentObject(profileVM)
+
      
 //                        ProfileView()
 //                            .environmentObject(authViewModel)
