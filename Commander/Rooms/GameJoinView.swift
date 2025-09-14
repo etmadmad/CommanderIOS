@@ -1,32 +1,25 @@
 import SwiftUI
 
 struct GameJoinView: View {
-    @StateObject var gameConfigVM = GameConfigurationViewModel()
+    @EnvironmentObject var gameConfigVM: GameConfigurationViewModel
+    @State private var shouldNavigate = false
     
     var body: some View {
         NavigationStack {
             ZStack {
                 Color(hex: darkColor)
                     .ignoresSafeArea()
-
-                VStack(spacing: 24) {
+                
+                VStack() {
                     Spacer()
                     
-                    HStack {
-                        Text("Commander")
-                            .customFont(.bold, size: 30, hexColor: accentCustomColor)
-                        Spacer()
-                        NavigationLink(destination: ProfileView(registrationVM: RegisterViewModel())) {
-                            Image(systemName: "person.circle")
-                                .resizable()
-                                .frame(width: 40, height: 40)
-                                .foregroundStyle(.white)
-                        }
-                    }
-                    .padding(.top, 20)
-
+                    Text("Commander")
+                        .customFont(.bold, size: 30, hexColor: accentCustomColor)
+                        .frame(alignment: .center)
+                    
+                    
                     VStack(spacing: 8) {
-                        InputView(inputText: $gameConfigVM.roomCode, inputName: "Enter Room Code", placeholder: "#00FF33")
+                        InputView(inputText: $gameConfigVM.roomCode, inputName: "", placeholder: "Enter Room Code")
                         
                         if gameConfigVM.triedToJoin && gameConfigVM.roomCode.isEmpty {
                             Text("Room not available")
@@ -35,10 +28,13 @@ struct GameJoinView: View {
                                 .font(.subheadline)
                         }
                     }
-
-                    // Join button
+                    .padding(.bottom, 10)
+                    
+                    
                     Button(action: {
+                        print("JOIN ROOM CLICKED")
                         gameConfigVM.joinGame()
+                        
                     }) {
                         Text("Join Room")
                     }
@@ -49,38 +45,100 @@ struct GameJoinView: View {
                         cornerRadius: 12
                     )
                     .padding(.top, 8)
-
+                    
+                    NavigationLink(
+                        destination: WaitingForTeamsView(
+                            //                           gameConfigVM: gameConfigVM,
+                            
+                            
+                            
+                        ),
+                        isActive: $shouldNavigate
+                    ) {
+                        EmptyView()
+                    }
+                    
+                    let allGames = gameConfigVM.gameConfigurationModel.founderGames + gameConfigVM.gameConfigurationModel.adminGames
+                    
+                    let useScroll = allGames.count >= 4
+                    
+                    Spacer()
+                    
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Your Rooms")
-                            .customFont(.bold, size: 25, hexColor: white)
-
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 16)
-                                .fill(Color.white.opacity(0.05))
-                            
-                            ScrollView {
+                            .font(.system(size: 25, weight: .bold, design: .default))
+                            .foregroundStyle(.white)
+                        
+                        if useScroll {
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 16)
+                                    .fill(Color.white.opacity(0.05))
+                                
+                                ScrollView {
+                                    LazyVStack(spacing: 16) {
+                                        ForEach(allGames, id: \.id) { game in
+                                            YourRoomsView(game: game)
+                                            Divider()
+                                        }
+                                    }
+                                    .padding()
+                                }
+                            }
+                            .frame(maxHeight: 290) // Limita se necessario
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                        } else {
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 16)
+                                    .fill(Color.white.opacity(0.05))
+                                
                                 LazyVStack(spacing: 16) {
-                                    ForEach(gameConfigVM.gameConfigurationModel.founderGames, id: \.id) { game in
+                                    ForEach(allGames, id: \.id) { game in
                                         YourRoomsView(game: game)
+                                        Divider()
+                                            .background(Color(hex: "AAAAAA"))
+                                        
                                     }
                                 }
-                                
                                 .padding()
                             }
-                            
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                            .frame(maxHeight: 290)
                         }
-                        .frame(height: 246)
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        
                     }
                     .padding(.top, 24)
-
+                    
                     Spacer()
                 }
                 .padding(.horizontal, 24)
-
+                
+            }
+            
+            /// FOR ADMINS & FOUNDERS
+            /// FREE FOR ALL AND OTHER GAME CONFIG
+            .navigationDestination(isPresented: $gameConfigVM.goToManageTeams) {
+                ManageTeamsView(
+                    roomName: gameConfigVM.configurationNameSession,
+                    gameMode: gameConfigVM.gameModeSession,
+                    sessionCode: gameConfigVM.currentSessionId ?? ""
+                )
+                .environmentObject(gameConfigVM)
+            }
+                .navigationDestination(isPresented: $gameConfigVM.goToLobbyFFA){
+                    FreeForAllLobbyView(
+                        roomName: gameConfigVM.configurationNameSession, gameMode: gameConfigVM.gameModeSession, sessionCode: gameConfigVM.currentSessionId ?? ""
+                    )
+                }
+                
+                /// FOR NON-ADMINS $ NON-FOUNDERS
+                .onChange(of: gameConfigVM.didJoinSuccessfully) { success in
+                    if success {
+                        shouldNavigate = true
+                    }
+                }
+                
             }
         }
     }
-}
-
+    
 
