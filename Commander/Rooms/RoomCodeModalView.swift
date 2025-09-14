@@ -8,8 +8,9 @@ struct RoomCodeModalView: View {
     let durationRoom: Int
     let roomCode: String
     var onCreateTeams: () -> Void
-    var onStartGame: () -> Void
-    
+//    var onStartGame: () -> Void
+    var onJoin: () -> Void
+
     ///AGGIUNTI
     @State private var isNavigating = false
     @EnvironmentObject var gameConfigVM: GameConfigurationViewModel
@@ -85,25 +86,24 @@ struct RoomCodeModalView: View {
                 
                 
                 Button(action: {
-//                    if gameModeRoom == "Free for All" {
-//                        isNavigating = true
-//                        onStartGame()
-//                        
-//                    }
                     if gameModeRoom == "Free for All" {
                         isNavigating = true
-                        // 👉 Avvia la partita lato server
-                        if let sessionId = gameConfigVM.currentSessionId {
-                            gameConfigVM.startSession(gameId: sessionId)
-                        }
-                        // 👉 Mantieni anche la tua logica di navigazione
-                        onStartGame()}
-                        else {
+                        
+
+//                        if let sessionId = gameConfigVM.currentSessionId {
+//                                   gameConfigVM.getSessionConfiguration(gameId: sessionId)
+//                                gameConfigVM.startSession(gameId: sessionId)
+//                               }
+                        
+//                               onStartGame()
+                        onJoin()
+                        
+                    }else {
                         isNavigating = true
                         onCreateTeams()
                     }
                 }) {
-                    Text(gameModeRoom == "Free for All" ? "Start" : "Create Teams")
+                    Text(gameModeRoom == "Free for All" ? "Join Game" : "Create Teams")
                         .frame(maxWidth: .infinity)
                         .font(.system(size: 16, weight: .regular, design: .default))
                         .foregroundStyle(Color(hex: darkColor))
