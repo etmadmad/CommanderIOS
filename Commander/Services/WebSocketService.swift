@@ -101,7 +101,7 @@ class WebSocketSessionManager {
                 }
             case "session_ended":
                 self.handleSessionEnded(event)
-                self.viewModel?.showSessionEndedView = true
+//                self.viewModel?.showSessionEndedView = true
                 print("🟡🟡🟡🟡🟡🟡🟡SESSIONE TERMINATA")
             default:
                 print("🤖WEBSOCKET: Evento \(event.type) ignorato")
@@ -120,8 +120,13 @@ class WebSocketSessionManager {
                switch winner {
                case .players(let array):
                    winnersArray = array
-               case .string(_):
-                   winnersArray = nil
+//               case .string(_):
+//                   winnersArray = nil
+               case .string(let teamName):
+                   // <--- QUESTA È LA RIGA DA AGGIUNGERE
+                   winnersArray = self.viewModel?.playersInTeams.first(where: { $0.teamName == teamName })?.players.map {
+                       WinnerPlayer(id: $0.id, username: $0.username)
+                   } ?? []
                }
            }
            DispatchQueue.main.async {

@@ -70,7 +70,8 @@ struct YourRoomsView: View {
             
           
             Button {
-                gameConfigVM.createGameSession(gameId: game.id) { session in
+                print("GAME ID CHE PASSA YOUR ROOM INFO VIEW", game.id)
+                gameConfigVM.createGameSession(sessionId: game.id) { session in
                     guard let session = session else {
                         print("Errore nella creazione della sessione")
                         return

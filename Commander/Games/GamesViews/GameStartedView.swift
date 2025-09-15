@@ -131,7 +131,7 @@ extension Array where Element == PlayerInSessionStatus {
 struct GameStartedView: View {
     @EnvironmentObject var gameConfigVM: GameConfigurationViewModel
     @EnvironmentObject var profileVM: ProfileViewModel
-    
+    @StateObject private var nfcVM = NFCDetectViewModel()
     @State private var showReportAlert = false
     @State private var playerToReport: String?
     @State private var showBombSheet = false
@@ -145,83 +145,118 @@ struct GameStartedView: View {
             return gameConfigVM.membersOfMyTeam(for: profileVM.userInfo.username)
         }
     }
+
     
     var body: some View {
-        ZStack {
-            Color(hex: darkColor).ignoresSafeArea()
-            
-            VStack {
+        NavigationView {
+            ZStack {
+                Color(hex: darkColor).ignoresSafeArea()
                 
-                Text(gameConfigVM.configurationNameSession)
-                    .foregroundColor(.white)
-                    .font(.system(size: 30, weight: .bold))
-                
-                CountdownView(totalTime: gameConfigVM.gameTimeSession * 60)
-                    .id(gameConfigVM.gameTimeSession)
-                    .padding(.vertical, 10)
-                
-                
-                PlayersStatusSection(
-                    players: players,
-                    currentUser: profileVM.userInfo.username,
-                    onReportDeath: { username in
-                        playerToReport = username
-                        showReportAlert = true
+                VStack {
+                    Text(gameConfigVM.configurationNameSession)
+                        .foregroundColor(.white)
+                        .font(.system(size: 30, weight: .bold))
+                    
+                    CountdownView(totalTime: gameConfigVM.gameTimeSession * 60)
+                        .id(gameConfigVM.gameTimeSession)
+                        .padding(.vertical, 10)
+                    
+                    PlayersStatusSection(
+                        players: players,
+                        currentUser: profileVM.userInfo.username,
+                        onReportDeath: { username in
+                            playerToReport = username
+                            showReportAlert = true
+                        }
+                    )
+                    
+                    Spacer()
+                    
+                    Button("Leave Game") {
+                        let sessionId = gameConfigVM.currentSessionId ?? gameConfigVM.roomCode
+                        print("🥸 LEAVE GAME SESSION CHIAMATA DA GAME STARTED VIEW ")
+                        gameConfigVM.leaveGameSession(roomCode: sessionId)
                     }
-                )
-                
+                    .foregroundColor(.red)
+                }
+                .padding(24)
+
                 if gameConfigVM.showBomb {
-                    Button(action: {
-                       showBombSheet = true
-                    }) {
-                        ZStack {
-                            Circle()
-                                .fill(Color(hex: accentCustomColor))
-                                .frame(width: 50, height: 50)
-                            Image("bombIcon")
-                                .foregroundStyle(Color(hex: darkColor))
+                    VStack {
+                        Spacer()
+                        HStack {
+                            Spacer()
+                            Button(action: {
+//                                showBombSheet = true
+                                print("btn clicked")
+//                                nfcVM.startScan(
+                                
+//                                if let bomb = gameConfigVM.bombDetails {
+//                                    nfcVM.startScan(expectedBombCode: bomb.bombNfcCode,
+//                                                    defuseTime: bomb.defuseTimeSeconds)
+//                                    
+//                                }
+//                                
+                                if let bomb = gameConfigVM.bombDetails {
+                                    nfcVM.onBombDefused = {
+                                        // 👉 chiama il metodo del GameConfigurationViewModel
+//                                        gameConfigVM
+                                    }
+                                    
+                                    nfcVM.startScan(expectedBombCode: bomb.bombNfcCode,
+                                                    defuseTime: bomb.defuseTimeSeconds)
+                                }
+
+
+
+                            }) {
+                                ZStack {
+                                    Circle()
+                                        .fill(Color(hex: accentCustomColor))
+                                        .frame(width: 80, height: 80) // un po’ più grande stile FAB
+                                        .shadow(color: .black.opacity(0.3), radius: 6, x: 0, y: 4) // ombra flottante
+
+                                    Image("bombIcon")
+                                        .renderingMode(.template)
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 30, height: 30) // icona centrata
+                                        .foregroundStyle(Color(hex: darkColor))
+                                }
+                            }
+                            .padding(.trailing, 30) // margine dal bordo destro
+                            .padding(.bottom, 60)   // margine dal bordo inferiore
+//                            .sheet(isPresented: $showBombSheet) {
+//                                BombSheetView()
+//                                
+//                                    .presentationDetents([.medium, .large])
+//                                    .presentationDragIndicator(.visible)
+//                            }
                         }
                     }
-                    .sheet(isPresented: $showBombSheet) {
-                        BombSheetView()
-                            .presentationDetents([.medium, .large])
-                            .presentationDragIndicator(.visible)
-                    }
                 }
-  
-                                  
-                Spacer()
-                
-                Button("Leave Game") {
-                    let sessionId = gameConfigVM.currentSessionId ?? gameConfigVM.roomCode
-                    gameConfigVM.leaveGameSession(gameId: sessionId)
+
+                NavigationLink(
+                    destination: GameEndedView(
+                        outcome: gameConfigVM.outcome,
+                        winners: gameConfigVM.winners,
+                        winnerRaw: gameConfigVM.winnerRaw
+                    ),
+                    isActive: $gameConfigVM.showSessionEndedView
+                ) {
+                    EmptyView()
                 }
-                .foregroundColor(.red)
+                .navigationBarBackButtonHidden(true)
             }
-            .navigationBarBackButtonHidden(true)
-            .onChange(of: gameConfigVM.showSessionEndedView) { newValue in
-                
-                if newValue {
-                    isNavigating = true
-                }
-            }
-            .navigationDestination(isPresented: $isNavigating) {
-                GameEndedView(outcome: gameConfigVM.outcome, winners: gameConfigVM.winners)
-                    .environmentObject(gameConfigVM)
-            }
-            .padding(24)
         }
         .onAppear {
             gameConfigVM.currentUsername = profileVM.userInfo.username
             let sessionId = gameConfigVM.currentSessionId ?? gameConfigVM.roomCode
             if gameConfigVM.gameModeSession.lowercased() == "free for all" {
-                gameConfigVM.getPlayersInSession(gameId: sessionId) { }
+                gameConfigVM.getPlayersInSession(roomCode: sessionId) { }
             } else {
-                gameConfigVM.getPlayersInTeams(gameId: sessionId)
+                gameConfigVM.getPlayersInTeams(roomCode: sessionId)
             }
-
-            
-            
         }
         .alert(isPresented: $showReportAlert) {
             Alert(
@@ -229,44 +264,21 @@ struct GameStartedView: View {
                 message: Text("Are you sure you want to report your elimination?"),
                 primaryButton: .destructive(Text("Yes")) {
                     let sessionId = gameConfigVM.currentSessionId ?? gameConfigVM.roomCode
-                    gameConfigVM.changeStatusPlayer(gameId: sessionId, newStatus: "Eliminated")
-            
-                    
+                    gameConfigVM.changeStatusPlayer(roomCode: sessionId, newStatus: "Eliminated")
                 },
                 secondaryButton: .cancel()
             )
         }
     }
+
 }
 
 
 
-struct BombSheetView: View {
-    @StateObject private var nfcVM = NFCReaderViewModel()
 
-    var body: some View {
-        VStack(spacing: 20) {
-            Text("💣 Bomb Defuse")
-                .font(.title)
-                .bold()
 
-            Text("Scansione NFC")
-                .font(.headline)
 
-            Button(action: {
-                nfcVM.startScanning()
-            }) {
-                Text("🔍 Avvia Scansione")
-                    .padding()
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(12)
-            }
 
-            Text("Risultato: \(nfcVM.scannedText)")
-                .padding()
-                .multilineTextAlignment(.center)
-        }
-        .padding()
-    }
-}
+
+
+

@@ -23,11 +23,12 @@ class GameConfigurationViewModel: ObservableObject {
     @Published var gameModeSession: String = ""
     @Published var gameTimeSession: Int = 0
     @Published var teams: [TeamsModel] = []
+    @Published var bombDetails: BombDetails?
     
     @Published var didSessionStart: Bool = false
     @Published var showAlert: Bool = false
 
-    ///FOR NAVIGATION
+    ///FOR NAVIGATION of admin
     @Published var goToManageTeams: Bool = false
     @Published var goToLobbyFFA: Bool = false
     @Published var isGameStarted: Bool = false {
@@ -40,6 +41,7 @@ class GameConfigurationViewModel: ObservableObject {
     @Published var showSessionEndedView: Bool = false
     @Published var outcome: SessionOutcome = .draw
     @Published var winners: [WinnerPlayer] = []
+    @Published var winnerRaw: Winner?
  
     /// FOR PLAYERS
     @Published var joinedPlayers: [PlayerInSessionStatus] = []{
@@ -99,7 +101,7 @@ class GameConfigurationViewModel: ObservableObject {
                     DispatchQueue.main.async {
                         switch response.result {
                         case .success(let result):
-                            self.getSessionConfiguration(gameId: self.roomCode)
+                            self.getSessionConfiguration(roomCode: self.roomCode)
                             self.didJoinSuccessfully = true
                             print("didJoinSuccessfully: \(self.didJoinSuccessfully)")
                             self.manager = WebSocketSessionManager(sessionRoomCode: self.roomCode, viewModel: self)
@@ -145,14 +147,15 @@ class GameConfigurationViewModel: ObservableObject {
     }
     
     
-    func createGameSession(gameId: String, completion: @escaping (CreateSessionModel?) -> Void) {
+    func createGameSession(sessionId: String, completion: @escaping (CreateSessionModel?) -> Void) {
         guard let token = try? keychain.get("accessToken") else {
             print("Token not found")
             completion(nil)
             return
         }
         
-        let url = "\(Environment.baseURL)/game-configurations/\(gameId)/create-session/"
+        /// GAME ID = ID SESSION
+        let url = "\(Environment.baseURL)/game-configurations/\(sessionId)/create-session/"
         
         let headers: HTTPHeaders = [
             "Authorization": "Bearer \(token)",
@@ -174,9 +177,9 @@ class GameConfigurationViewModel: ObservableObject {
                     let roomCode = session.session_room_code
                     self.manager = WebSocketSessionManager(sessionRoomCode: roomCode, viewModel: self)
                     self.manager?.start()
-                    self.currentSessionId = session.session_room_code
-                    
-                    self.getSessionConfiguration(gameId: roomCode)
+                    self.currentSessionId = roomCode
+                    print("CURRENT ID: \(self.currentSessionId ?? "NONE")")
+                    self.getSessionConfiguration(roomCode: roomCode)
                     completion(session)
                     
                 case .failure(let error):
@@ -192,7 +195,24 @@ class GameConfigurationViewModel: ObservableObject {
     }
     
     
-    func leaveGameSession(gameId: String) {
+    func leaveGameSession(roomCode: String) {
+        
+
+        
+        goToLobbyFFA = false
+        goToManageTeams = false
+        isGameStarted = false
+        
+        teams.removeAll()
+
+
+        currentSessionId = nil
+        joinedPlayers = []
+        playersInTeams = []
+        showBomb = false
+        
+        
+        
         guard let token = try? keychain.get("accessToken") else {
             print("Token not found")
             return
@@ -204,7 +224,7 @@ class GameConfigurationViewModel: ObservableObject {
             "Content-Type": "application/json"
         ]
         
-        let URLLeaveSession = "\(Environment.baseURL)/sessions/\(gameId)/leave/"
+        let URLLeaveSession = "\(Environment.baseURL)/sessions/\(roomCode)/leave/"
         
         AF.request(URLLeaveSession, method: .post, encoding: JSONEncoding.default, headers: headers)
             .validate()
@@ -213,18 +233,13 @@ class GameConfigurationViewModel: ObservableObject {
                     switch response.result {
                     case .success(let detail):
                         print("👋 Succesfully left session: \(detail)")
-//                        self.manager = WebSocketSessionManager(sessionRoomCode: gameId)
-//                        self.manager?.close()
-                        
-                        ///aggiointo questo ()
-                        self.manager?.close()
-                        self.manager = nil
 
-                        self.currentSessionId = nil
-                        self.joinedPlayers = []
-                        self.playersInTeams = []
-                        self.isGameStarted = false
-                        self.showBomb = false
+                        
+                            self.manager?.close()
+                            self.manager = nil
+                        
+
+                        
                         print("GAME STARTED? \(self.isGameStarted)")
                         
                     case .failure(let error):
@@ -236,7 +251,7 @@ class GameConfigurationViewModel: ObservableObject {
     
     
     
-    func getSessionConfiguration(gameId: String) {
+    func getSessionConfiguration(roomCode: String) {
         guard let token = try? keychain.get("accessToken") else {
             print("Token not found")
             return
@@ -248,7 +263,7 @@ class GameConfigurationViewModel: ObservableObject {
             "Content-Type": "application/json"
         ]
         
-        let URLGetSessionConfiguration = "\(Environment.baseURL)/sessions/\(gameId)/configuration/"
+        let URLGetSessionConfiguration = "\(Environment.baseURL)/sessions/\(roomCode)/configuration/"
         
         AF.request(URLGetSessionConfiguration, method: .get, encoding: JSONEncoding.default, headers: headers)
             .validate()
@@ -263,6 +278,8 @@ class GameConfigurationViewModel: ObservableObject {
                         self.maxPlayersSession = detail.maxPlayers
                         self.gameTimeSession = detail.matchDurationMinutes
                         
+                        self.bombDetails = detail.bombDetails
+
                     case .failure(let error):
                         print("ERROR: \(error)")
                     }
@@ -283,7 +300,7 @@ class GameConfigurationViewModel: ObservableObject {
     
     
     
-    func getPlayersInSession(gameId: String, completion: @escaping () -> Void) {
+    func getPlayersInSession(roomCode: String, completion: @escaping () -> Void) {
         
         guard let token = try? keychain.get("accessToken") else {
             print("Token not found")
@@ -296,7 +313,7 @@ class GameConfigurationViewModel: ObservableObject {
             "Accept": "application/json"
         ]
         
-        let URLPlayers = "\(Environment.baseURL)/sessions/\(gameId)/players/"
+        let URLPlayers = "\(Environment.baseURL)/sessions/\(roomCode)/players/"
         
         AF.request(URLPlayers, method: .get, headers: headers)
             .validate()
@@ -310,7 +327,7 @@ class GameConfigurationViewModel: ObservableObject {
 
                  
                     case .failure(let error):
-                        print("❌ Errore nella richiesta: \(error)")
+                        print("❌ ERROR PLAYER IN SESSION: \(error)")
                         
                     }
                     completion()
@@ -347,14 +364,14 @@ class GameConfigurationViewModel: ObservableObject {
                         }
                     }
                 case .failure(let error):
-                    print("❌ Errore nella richiesta: \(error)")
+                    print("❌ Error FETCH IMAGE USER: \(error)")
                 }
             }
         
     }
     
     
-    func createTeams(gameId: String, teamName: String, completion: @escaping (Bool) -> Void) {
+    func createTeams(roomCode: String, teamName: String, completion: @escaping (Bool) -> Void) {
         guard let token = try? keychain.get("accessToken") else {
             print("Token not found")
             return
@@ -368,7 +385,7 @@ class GameConfigurationViewModel: ObservableObject {
             "team_name": teamName
         ]
         
-        let URLCreateTeams = "\(Environment.baseURL)/sessions/\(gameId)/teams/create/"
+        let URLCreateTeams = "\(Environment.baseURL)/sessions/\(roomCode)/teams/create/"
         
         AF.request(URLCreateTeams, method: .post, parameters: parameters,
                    encoding: JSONEncoding.default, headers: headers,)
@@ -393,7 +410,9 @@ class GameConfigurationViewModel: ObservableObject {
         
     }
 
-    func assignPlayerToTeam(username: String, gameId: String, teamId: String, completion: @escaping (Bool) -> Void) {
+    func assignPlayerToTeam(username: String, roomCode: String, teamId: String, completion: @escaping (Bool) -> Void) {
+        print("Assigning player \(username) to teamId \(teamId) in session \(roomCode)")
+
         guard let token = try? keychain.get("accessToken"),
               let sessionId = self.currentSessionId else {
             print("Token o Session ID non trovati")
@@ -407,7 +426,7 @@ class GameConfigurationViewModel: ObservableObject {
             "Content-Type": "application/json"
         ]
 
-        let URLAssignPlayer = "\(Environment.baseURL)/sessions/\(gameId)/assign-player/"
+        let URLAssignPlayer = "\(Environment.baseURL)/sessions/\(roomCode)/assign-player/"
 
         let parameters: [String: Any] = [
             "player_username": username,
@@ -424,7 +443,7 @@ class GameConfigurationViewModel: ObservableObject {
                         completion(true)
 //                        self.startSession(gameId: gameId)
                     case .failure(let error):
-                        print("ERROR ASSIGNING PLAYER \(username) to team \(teamId): \(error)")
+                        print("ERROR ASSIGNING PLAYER \(username) to team \(teamId) in the game \(roomCode): \(error)")
                         if let data = response.data, let responseString = String(data: data, encoding: .utf8) {
                             print("Corpo della risposta:", responseString)
                         }
@@ -434,7 +453,7 @@ class GameConfigurationViewModel: ObservableObject {
             }
     }
     
-    func startSession(gameId: String, completion: (() -> Void)? = nil) {
+    func startSession(roomCode: String, completion: (() -> Void)? = nil) {
         guard let token = try? keychain.get("accessToken") else{
             print("Token non trovati")
             return
@@ -446,7 +465,7 @@ class GameConfigurationViewModel: ObservableObject {
             "Content-Type": "application/json"
         ]
 
-        let URLStartSession = "\(Environment.baseURL)/sessions/\(gameId)/start/"
+        let URLStartSession = "\(Environment.baseURL)/sessions/\(roomCode)/start/"
         
         AF.request(URLStartSession, method: .post, headers: headers)
             .validate()
@@ -462,12 +481,12 @@ class GameConfigurationViewModel: ObservableObject {
                                     }
                 
                 case .failure(let error):
-                    print("❌ Errore nella richiesta: \(error)")
+                    print("❌ Error START SESSION: \(error)")
                 }
             }
     }
     
-    func getPlayersInTeams(gameId:String) {
+    func getPlayersInTeams(roomCode:String) {
         guard let token = try? keychain.get("accessToken") else{
             print("Token non trovati")
             return
@@ -479,7 +498,7 @@ class GameConfigurationViewModel: ObservableObject {
             "Content-Type": "application/json"
         ]
 
-        let URLGetPlayersInTeams = "\(Environment.baseURL)/sessions/\(gameId)/teams/"
+        let URLGetPlayersInTeams = "\(Environment.baseURL)/sessions/\(roomCode)/teams/"
         
         AF.request(URLGetPlayersInTeams, method: .get, headers: headers)
             .validate()
@@ -519,7 +538,7 @@ class GameConfigurationViewModel: ObservableObject {
         return []
     }
     
-    func changeStatusPlayer(gameId: String, newStatus: String = "Eliminated") {
+    func changeStatusPlayer(roomCode: String, newStatus: String = "Eliminated") {
         
         guard let token = try? keychain.get("accessToken") else{
             print("Token non trovati")
@@ -535,7 +554,7 @@ class GameConfigurationViewModel: ObservableObject {
             "player_status": newStatus
         ]
         
-        let URLChangeStatusPlayer = "\(Environment.baseURL)/session/\(gameId)/me/status/"
+        let URLChangeStatusPlayer = "\(Environment.baseURL)/session/\(roomCode)/me/status/"
         
         AF.request(URLChangeStatusPlayer, method: .post,  parameters: parameters,
                    encoding: JSONEncoding.default, headers: headers)
@@ -600,8 +619,8 @@ class GameConfigurationViewModel: ObservableObject {
             let gameId = self.currentSessionId ?? self.roomCode
             if !gameId.isEmpty {
                 print("⚠️ giocatore \(username) non trovato localmente, ricarico dal server")
-                self.getPlayersInTeams(gameId: gameId)
-                self.getPlayersInSession(gameId: gameId) { }
+                self.getPlayersInTeams(roomCode: gameId)
+                self.getPlayersInSession(roomCode: gameId) { }
             }
         }
     }
@@ -609,14 +628,19 @@ class GameConfigurationViewModel: ObservableObject {
     func handleSessionEnded(reason: String?, winners: Winner?) {
         guard let reason else { return }
         showSessionEndedView = true
-
+        self.winnerRaw = winners
         let winnersArray: [WinnerPlayer]
         switch winners {
         case .players(let arr):
             winnersArray = arr
+        case .string(let teamName):
+            winnersArray = playersInTeams.first(where: { $0.teamName == teamName })?.players.map {
+                WinnerPlayer(id: $0.id, username: $0.username)
+            } ?? []
         default:
             winnersArray = []
         }
+      
 
         switch reason {
         case "all_opponents_eliminated", "all_attackers_eliminated", "bomb_defused":
@@ -636,6 +660,42 @@ class GameConfigurationViewModel: ObservableObject {
         default:
             self.winners = []
         }
+    }
+    
+    func endSession(roomCode: String) {
+        guard let token = try? keychain.get("accessToken") else{
+            print("Token non trovati")
+            return
+        }
+
+        let headers: HTTPHeaders = [
+            "Authorization": "Bearer \(token)",
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        ]
+
+        let URLEndSession = "\(Environment.baseURL)/sessions/\(roomCode)/end/"
+        
+        let parameters: [String: Any] = [
+            "reason": "bomb_defused",
+            "winner": currentUsername
+        ]
+        AF.request(URLEndSession, method: .post, headers: headers)
+            .validate()
+            .responseDecodable(of: [PlayersInTeamResponse].self) { response in
+                switch response.result {
+                case .success(let players):
+                    self.playersInTeams = players
+                    print("💕💕💕💕💕💕 PLAYERS IN TEAM:", self.playersInTeams)
+
+                    if let username = self.currentUsername {
+                        self.updateShowBomb(for: username)
+                    }
+                
+                case .failure(let error):
+                    print("❌ Errore nella richiesta dei players: \(error)")
+                }
+            }
     }
 
 }

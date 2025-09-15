@@ -39,8 +39,6 @@ struct TabBarView: View {
                 }
 
                 .accentColor(Color(hex: accentCustomColor))
-//                .toolbarBackground(.indigo, for: .tabBar)
-//                .toolbarBackground(.visible, for: .tabBar)
         }
         
     }

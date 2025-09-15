@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct LabelledDivider: View {
-    
     let label: String
     let horizontalPadding: CGFloat
     let color: Color
@@ -28,19 +27,18 @@ struct LabelledDivider: View {
 
 struct LogInView: View {
     @EnvironmentObject var authViewModel: AuthtenticationViewModel
-    @State private var path: [Int] = []
     @StateObject private var registrationVM = RegisterViewModel()
     
+    @State private var path: [Int] = []
     @State private var shakeTrigger = false
     @State private var shakeAnimation = 0.0
     
+    /// OTP & REGISTRATION SHEET NAV
     @State var isSheetPresented: Bool = false
-    
     @State private var navigateToOTP: Bool = false
 
 
     var body: some View {
-
             ZStack {
                 Color(hex: darkColor)
                     .ignoresSafeArea(.all, edges: .all)
@@ -67,10 +65,18 @@ struct LogInView: View {
                         inputText: $authViewModel.credentials.username,
                         inputName: "Email or Username",
                         placeholder: "Your email or username",
-                        showError: authViewModel.triedToLogin && authViewModel.credentials.username.isEmpty || authViewModel.triedToLogin &&
-                            !authViewModel.isLoggedIn &&
-                            !authViewModel.credentials.username.isEmpty &&
-                            !authViewModel.credentials.password.isEmpty
+//                        showError: authViewModel.triedToLogin && authViewModel.credentials.username.isEmpty || authViewModel.triedToLogin &&
+//                            !authViewModel.isLoggedIn &&
+//                            !authViewModel.credentials.username.isEmpty &&
+//                            !authViewModel.credentials.password.isEmpty
+                        showError: authViewModel.triedToLogin &&
+                                   !authViewModel.isLoggingIn && (
+                                       authViewModel.credentials.username.isEmpty ||
+                                       (!authViewModel.isLoggedIn &&
+                                        !authViewModel.credentials.username.isEmpty &&
+                                        !authViewModel.credentials.password.isEmpty)
+                                   )
+
                     )
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
@@ -93,10 +99,17 @@ struct LogInView: View {
                         inputName: "Password",
                         placeholder: "Your password",
                         isSecureField: true,
-                        showError: authViewModel.triedToLogin && authViewModel.credentials.password.isEmpty || authViewModel.triedToLogin &&
-                        !authViewModel.isLoggedIn &&
-                        !authViewModel.credentials.username.isEmpty &&
-                        !authViewModel.credentials.password.isEmpty
+//                        showError: authViewModel.triedToLogin && authViewModel.credentials.password.isEmpty || authViewModel.triedToLogin &&
+//                        !authViewModel.isLoggedIn &&
+//                        !authViewModel.credentials.username.isEmpty &&
+//                        !authViewModel.credentials.password.isEmpty
+                        showError: authViewModel.triedToLogin &&
+                                   !authViewModel.isLoggingIn && ( // 👈 aggiunto questo
+                                       authViewModel.credentials.password.isEmpty ||
+                                       (!authViewModel.isLoggedIn &&
+                                        !authViewModel.credentials.username.isEmpty &&
+                                        !authViewModel.credentials.password.isEmpty)
+                                   )
                     )
                     .autocorrectionDisabled()
                    
@@ -111,32 +124,30 @@ struct LogInView: View {
                         }
                     
                     /// DA RIVEDERE
-                    if !authViewModel.credentials.password.isEmpty || !authViewModel.credentials.username.isEmpty{
+//                    if !authViewModel.credentials.password.isEmpty || !authViewModel.credentials.username.isEmpty{
+//                        if authViewModel.triedToLogin &&
+//                            !authViewModel.isLoggedIn  {
+//                            /// se il bro ha fatto login e non è riuscito
+//                            Text("Email/Username or Password incorrect")
+//                                .font(.system(size: 16))
+//                                .foregroundStyle(Color.red)
+//                                .frame(maxWidth: .infinity, alignment: .leading)
+//                        }}
+                    if !authViewModel.credentials.password.isEmpty || !authViewModel.credentials.username.isEmpty {
                         if authViewModel.triedToLogin &&
-                            !authViewModel.isLoggedIn  {
-                            /// se il bro ha fatto login e non è riuscito
+                            !authViewModel.isLoggedIn &&
+                            !authViewModel.isLoggingIn {
                             Text("Email/Username or Password incorrect")
                                 .font(.system(size: 16))
                                 .foregroundStyle(Color.red)
                                 .frame(maxWidth: .infinity, alignment: .leading)
-                        }}
-                    
-                    
-                    /// Forgot password
-                    Button(action: {
-                       
-                    }) {
-                        Text("Forgot your password?")
-                            .customFont(.semibold, size: 14, hexColor: accentCustomColor)
-                            .frame(maxWidth: .infinity, alignment: .trailing)
+                        }
                     }
-                    .padding(.bottom, 36)
 
-                    /// LOGIN BUTTON (modifier)
+                    
+                    /// LOGIN BUTTON
                     Button {
                         authViewModel.checkInput()
-                        
-                        
                     } label: {
                         Text("Login")
                             .customFont(.bold, size: 18, hexColor: darkColor)
@@ -145,19 +156,6 @@ struct LogInView: View {
                    
                     
                     LabelledDivider(label: "or")
-                  
-                    
-                    // GOOGLE LOGIN BUTTON (estensione modifier)
-                    Button {
-//                        authViewModel.login()
-//                        if authViewModel.isLoggedIn {
-//                            
-//                        }
-                    } label: {
-                        Text("Login with Google")
-                            .customFont(.regular, size: 18, hexColor: accentCustomColor)
-                            .customButton(typeBtn: .tertiary, width: 350, height: 40, cornerRadius: 8)
-                    }
                    
                     
                     Spacer()
@@ -192,7 +190,8 @@ struct LogInView: View {
                 .padding(.horizontal, 24)
 
         }
-        //evitare che quando fai logout appaia email e password required
+
+        /// no email & password required ui after ogout
         .onAppear {
             authViewModel.triedToLogin = false
             authViewModel.credentials = Credentials()

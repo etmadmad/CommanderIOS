@@ -21,8 +21,8 @@ class RegisterViewModel: ObservableObject {
     @Published var registrationSuccess: Bool = false
     @Published var triedApiCall: Bool = false
     
-//    @Published var selectedImageData: Data? = nil
-
+    //    @Published var selectedImageData: Data? = nil
+    
     
     private var emailDebounceTimer: Timer?
     private var usernameDebounceTimer: Timer?
@@ -31,7 +31,7 @@ class RegisterViewModel: ObservableObject {
     private var checkPasswordURL = Environment.baseURL + "/check-password/"
     private var checkUsernameURL = Environment.baseURL + "/check-username/"
     private var registerUserURL = Environment.baseURL + "/register/"
-
+    
     
     var errorMessage = ""
     
@@ -106,7 +106,7 @@ class RegisterViewModel: ObservableObject {
             errors.append("Password must contain at least one special character.")
         }
         
-//        isPasswordValid = errors.isEmpty
+        //        isPasswordValid = errors.isEmpty
         
         if errors.isEmpty {
             /// checking with api also
@@ -150,7 +150,7 @@ class RegisterViewModel: ObservableObject {
                 }
             }
     }
-
+    
     func validateUsername() {
         /// TIMER
         usernameDebounceTimer?.invalidate()
@@ -184,7 +184,7 @@ class RegisterViewModel: ObservableObject {
         }
     }
     
-
+    
     
     func validateStep1() -> Bool {
         triedStep1 = true
@@ -211,16 +211,16 @@ class RegisterViewModel: ObservableObject {
         return !isUsernameTaken && !registrationData.username.isEmpty
     }
     
-
+    
     func registerUser() {
         // per la data di nascita
         let encoder = JSONEncoder()
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
         encoder.dateEncodingStrategy = .formatted(dateFormatter)
-
-
-
+        
+        
+        
         print(registrationData)
         AF.request(registerUserURL, method: .post, parameters: self.registrationData, encoder: JSONParameterEncoder(encoder: encoder))
             .validate(statusCode: 200..<300)
@@ -232,68 +232,16 @@ class RegisterViewModel: ObservableObject {
                         self.registrationSuccess = true
                         print("Utente registrato: ", message)
                         print("nel VIEW MODEL", self.registrationSuccess)
-
+                        
                     case .failure(let error):
                         self.triedApiCall = true
                         self.errorMessage = error.localizedDescription
                         print(error)
-
-                    }
-
-
-
+                        
                 }
+                    
             }
-
+        }
+        
     }
-    
-//    func registerUser() {
-//        triedApiCall = true
-//
-//        let dateFormatter = DateFormatter()
-//        dateFormatter.dateFormat = "yyyy-MM-dd"
-//        let dobString = dateFormatter.string(from: registrationData.date_of_birth)
-//
-//        AF.upload(
-//            multipartFormData: { multipartFormData in
-//                multipartFormData.append(Data(self.registrationData.first_name.utf8), withName: "first_name")
-//                multipartFormData.append(Data(self.registrationData.last_name.utf8), withName: "last_name")
-//                multipartFormData.append(Data(dobString.utf8), withName: "date_of_birth")
-//                multipartFormData.append(Data(self.registrationData.email.utf8), withName: "email")
-//                multipartFormData.append(Data(self.registrationData.password.utf8), withName: "password")
-//                multipartFormData.append(Data(self.registrationData.password2.utf8), withName: "password2")
-//                multipartFormData.append(Data(self.registrationData.username.utf8), withName: "username")
-//                
-//                // ✅ Aggiungi l'immagine come File se presente
-//                if let imageData = self.selectedImageData {
-//                    multipartFormData.append(imageData, withName: "profile_image", fileName: "profile.jpg", mimeType: "image/jpeg")
-//                }
-//            },
-//            to: registerUserURL
-//        )
-//        .validate(statusCode: 200..<300)
-//        .responseDecodable(of: RegistrationResponse.self) { response in
-//            DispatchQueue.main.async {
-//                switch response.result {
-//                case .success(let message):
-//                    self.registrationSuccess = true
-//                    print("Utente registrato: \(message)")
-//                case .failure(let error):
-//                    print(self.selectedImageData)
-//                    
-//                    print(self.registrationData)
-//                    self.registrationSuccess = false
-//                    self.errorMessage = error.localizedDescription
-//                    print("Errore: \(error)")
-//                }
-//            }
-//        }
-//    }
-
-    
-    
-    
-    
-    
-    
 }

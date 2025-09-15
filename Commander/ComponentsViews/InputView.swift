@@ -17,7 +17,8 @@ struct InputView: View {
     var body: some View {
         VStack(spacing: 8) {
             Text(inputName)
-                .customFont(.regular, size: 15, hexColor: "#FFFFFF")
+                .font(.system(size: 15, weight: .regular))
+                .foregroundColor(Color.white)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             ZStack(alignment: .trailing) {

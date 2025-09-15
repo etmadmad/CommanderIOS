@@ -1,6 +1,6 @@
 import Foundation
 
-/// Backend responds with authtoken
+/// BACKEND RESPONDS WITH AUTHTOKEN
 struct Credentials: Codable {
     var username: String = ""
     var password: String = ""
@@ -39,7 +39,6 @@ struct OTPVerificationResponseModel: Decodable {
 }
 
 
-// token
 struct MessageTokenExpired: Decodable {
     var token_class: String = ""
     var token_type: String = ""

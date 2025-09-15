@@ -56,7 +56,7 @@ struct WaitingForTeamsView: View {
                 } else {
                     // L’utente ha lasciato manualmente → eseguo il leave
                     print("👋 User left WaitingForTeamsView manualmente, chiamo leaveGameSession")
-                    gameConfigVM.leaveGameSession(gameId: sessionId)
+                    gameConfigVM.leaveGameSession(roomCode: sessionId)
                 }}
         }
         .navigationDestination(isPresented: $gameConfigVM.isGameStarted) {

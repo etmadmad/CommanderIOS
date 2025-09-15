@@ -133,19 +133,19 @@ struct ManageTeamsView: View {
         
         .onAppear {
             isLoading = true
-            
+            print(gameConfigVM.currentSessionId)
             /// RETRIEVES THE PLAYERS WHO JOINED WHILE ADMIN WAS STILL IN ROOM CODE MODAL SHEET
-            gameConfigVM.getPlayersInSession(gameId: sessionCode) {
+            gameConfigVM.getPlayersInSession(roomCode: sessionCode) {
                 
                 /// CREATES TEAMS IF NON EXISTENT
-                gameConfigVM.getPlayersInTeams(gameId: sessionCode)
+                gameConfigVM.getPlayersInTeams(roomCode: sessionCode)
                 
                 if gameConfigVM.playersInTeams.isEmpty {
-                    gameConfigVM.createTeams(gameId: sessionCode, teamName: "Team 1") { success1 in
+                    gameConfigVM.createTeams(roomCode: sessionCode, teamName: "Team 1") { success1 in
                         if success1 {
-                            gameConfigVM.createTeams(gameId: sessionCode, teamName: "Team 2") { success2 in
+                            gameConfigVM.createTeams(roomCode: sessionCode, teamName: "Team 2") { success2 in
                                 if success2 {
-                                    gameConfigVM.getPlayersInTeams(gameId: sessionCode)
+                                    gameConfigVM.getPlayersInTeams(roomCode: sessionCode)
                                     isLoading = false
                                     
                                 }
@@ -162,7 +162,8 @@ struct ManageTeamsView: View {
         /// ADDED THIS 
         .onDisappear() {
             if !gameConfigVM.isGameStarted {
-                gameConfigVM.leaveGameSession(gameId: sessionCode)
+                print("🥸LEAVE GAME SESSION CHIAMATA DA MANAGETEAMS VIEW ")
+                gameConfigVM.leaveGameSession(roomCode: sessionCode)
             }
         }
         
@@ -241,7 +242,7 @@ struct StartRoomBarView: View {
                             
                             for username in teamMembers {
                                 dispatchGroup.enter()
-                                gameConfigVM.assignPlayerToTeam(username: username, gameId: sessionId, teamId: teamId) { success in
+                                gameConfigVM.assignPlayerToTeam(username: username, roomCode: sessionId, teamId: teamId) { success in
                                     if success { successfulAssignments += 1 }
                                     dispatchGroup.leave()
                                 }
@@ -251,8 +252,8 @@ struct StartRoomBarView: View {
                         dispatchGroup.notify(queue: .main) {
                             let totalToAssign = membersPerTeam.flatMap { $0 }.count
                             if successfulAssignments == totalToAssign {
-                                gameConfigVM.getSessionConfiguration(gameId: sessionId)
-                                gameConfigVM.startSession(gameId: sessionId)
+                                gameConfigVM.getSessionConfiguration(roomCode: sessionId)
+                                gameConfigVM.startSession(roomCode: sessionId)
                             } else {
                                 gameConfigVM.errorMessage = "Alcuni giocatori non sono stati assegnati correttamente. Riprova."
                                 gameConfigVM.showAlert = true
@@ -260,8 +261,8 @@ struct StartRoomBarView: View {
                         }
                     } else {
                         /// FOR FREE FOR ALL
-                        gameConfigVM.getSessionConfiguration(gameId: sessionId)
-                        gameConfigVM.startSession(gameId: sessionId)
+                        gameConfigVM.getSessionConfiguration(roomCode: sessionId)
+                        gameConfigVM.startSession(roomCode: sessionId)
                     }
                     
                 }) {
@@ -346,35 +347,13 @@ struct FreeForAllLobbyView: View {
                 
                 Spacer()
                 
-//                Button(action: {
-//                    // preferiamo usare currentSessionId (impostata alla creazione sessione)
-//                    let sessionId = gameConfigVM.currentSessionId ?? sessionCode
-//                    guard !sessionId.isEmpty else {
-//                        print("Session ID non disponibile.")
-//                        return
-//                    }
-//                
-//                        gameConfigVM.getSessionConfiguration(gameId: sessionId)
-//                        gameConfigVM.startSession(gameId: sessionId)
-//                            
-//               
-//                    }
-//                ) {
-//                    Text("Start Room")
-//                        .customButton(
-//                            typeBtn: .primary,
-//                            width: 120,
-//                            height: 45,
-//                            cornerRadius: 15
-//                        )
-//
                 
                 StartRoomBarView(
                     nameRoom: roomName,
                     typeRoom: gameMode,
                     sessionCode: sessionCode,
                     goToGameStarted: $isGameStarted,
-                    membersPerTeam: .constant([]), // placeholder, non usato
+                    membersPerTeam: .constant([]), 
                     requiresTeams: false
                 )
 
@@ -385,7 +364,7 @@ struct FreeForAllLobbyView: View {
             }
             .onAppear {
                 // inizializza lista (poi gli eventi WS aggiorneranno joinedPlayers)
-                gameConfigVM.getPlayersInSession(gameId: sessionCode) { }
+                gameConfigVM.getPlayersInSession(roomCode: sessionCode) { }
             }
         }
     

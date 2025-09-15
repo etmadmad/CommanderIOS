@@ -65,6 +65,9 @@ class AuthtenticationViewModel: ObservableObject {
     @Published var isEmailValid: Bool = true
     @Published var isOTPvalid: Bool = false
     
+    @Published var isLoggingIn = false
+
+    
    /// TOKENS
     var accessToken: String? {
         guard let accessToken = try? keychain.get("accessToken") else { return nil }
@@ -108,7 +111,6 @@ class AuthtenticationViewModel: ObservableObject {
             if isValid {
                 self.isLoggedIn = true
                 self.isOTPvalid = true
-//                print(self.accessToken, self.refreshToken)
             } else {
                 self.getNewAccessToken { result in
                     switch result {
@@ -161,23 +163,16 @@ class AuthtenticationViewModel: ObservableObject {
         }
         else {
             validateEmail()
-            print(isEmailValid)
-            
-            /// TOLTO CHECK VALIDITÀ EMAIL PERCHÈ USERNAME
-            
-            //            if !isEmailValid {
-            //                print("email non valida")
-            //               errorMessage = "Invalid email address"
-            //               return
-            //            }
-            //            else {
-            print("provato il login")
+            print("isEmailValid:", isEmailValid)
             login()
             
         }
     }
         
     func login() {
+        
+        isLoggingIn = true
+
         // added JSONParameterEncoder.default, controlla l'encoder anche di email
         print("Login Requested", credentials)
         AF.request(loginURL, method: .post, parameters: credentials, encoder: JSONParameterEncoder.default, headers: self.headers)
@@ -188,13 +183,15 @@ class AuthtenticationViewModel: ObservableObject {
                 case .success(let token):
                     self.authToken = token
                     self.isLoggedIn = true
-                    
+                    self.isLoggingIn = false
+
                     print(response.result, self.isLoggedIn)
                     if self.isLoggedIn {
                         self.requestOTP()
                         print("è logged in e ha fatto la request otp")
                     }
                 case .failure(let error):
+                    self.isLoggingIn = false
                     self.errorMessage = error.localizedDescription
                     print("Errore Ethi", error)
                     
@@ -202,26 +199,6 @@ class AuthtenticationViewModel: ObservableObject {
                 }
             }
     }
-    
-//    func deleteAccount () {
-//        print("Delete Account Requested")
-//        AF.request(deleteAccountURL, method: .delete, parameters: accessToken, encoder: JSONParameterEncoder.default)
-//            .validate(statusCode: 200..<300)
-//            .response { response in
-//                if let error = response.error {
-//                    self.errorMessage = error.localizedDescription
-//                    print("Error Delete Account", error)
-//                    return
-//                }
-//                // Success
-//                print("Account Deleted")
-//                self.isLoggedIn = false
-//                self.authToken = nil
-//                self.isOTPvalid = false
-//                self.credentials = Credentials()
-//                self.user = nil
-//            }
-//    }
     
     func deleteAccount () {
         print("Delete Account Requested")
@@ -296,13 +273,13 @@ class AuthtenticationViewModel: ObservableObject {
     enum AuthError: Error {
         case refreshTokenNotFound
         case keychainSaveError(Error)
-        // altri casi di errore se necessario
     }
 
     func getNewAccessToken(completion: @escaping (Result<Void, Error>) -> Void) {
+        /// IF IT FAILS TO GIVE REFRESH TOKEN -> LOGOUT
         guard let refreshToken = try? keychain.get("refreshToken") else {
-            completion(.failure(AuthError.refreshTokenNotFound)) // Definisci un errore apposito
-            logout() // Logout se non c'è il refresh token
+            completion(.failure(AuthError.refreshTokenNotFound))
+            logout()
             return
         }
 
@@ -313,7 +290,6 @@ class AuthtenticationViewModel: ObservableObject {
                 case .success(let token):
                     do {
                         try
-                        ///  if refresh token is valid, it sends me a new access token
                         self.keychain.set(token.access, key: "accessToken")
                         print("Access token refreshed.")
                         completion(.success(()))
@@ -343,7 +319,7 @@ class AuthtenticationViewModel: ObservableObject {
         authToken = nil
         isLoggedIn = false
         isOTPvalid = false
-        credentials = Credentials() // resetta credenziali
+        credentials = Credentials() ///RESET
         user = nil
     }
 

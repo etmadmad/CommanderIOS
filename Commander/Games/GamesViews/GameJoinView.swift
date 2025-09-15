@@ -20,6 +20,7 @@ struct GameJoinView: View {
                     
                     VStack(spacing: 8) {
                         InputView(inputText: $gameConfigVM.roomCode, inputName: "", placeholder: "Enter Room Code")
+                            .textInputAutocapitalization(.characters)
                         
                         if gameConfigVM.triedToJoin && gameConfigVM.roomCode.isEmpty {
                             Text("Room not available")
@@ -30,6 +31,11 @@ struct GameJoinView: View {
                     }
                     .padding(.bottom, 10)
                     
+                    if !gameConfigVM.didJoinSuccessfully && gameConfigVM.triedToJoin{
+                        Text("Session not found")
+                            .foregroundColor(Color(hex: redError))
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
                     
                     Button(action: {
                         print("JOIN ROOM CLICKED")
@@ -46,20 +52,15 @@ struct GameJoinView: View {
                     )
                     .padding(.top, 8)
                     
+                    
                     NavigationLink(
-                        destination: WaitingForTeamsView(
-                            //                           gameConfigVM: gameConfigVM,
-                            
-                            
-                            
-                        ),
-                        isActive: $shouldNavigate
-                    ) {
+                        destination: WaitingForTeamsView(),
+                        isActive: $shouldNavigate)
+                    {
                         EmptyView()
                     }
                     
                     let allGames = gameConfigVM.gameConfigurationModel.founderGames + gameConfigVM.gameConfigurationModel.adminGames
-                    
                     let useScroll = allGames.count >= 4
                     
                     Spacer()
@@ -84,7 +85,7 @@ struct GameJoinView: View {
                                     .padding()
                                 }
                             }
-                            .frame(maxHeight: 290) // Limita se necessario
+                            .frame(maxHeight: 290) 
                             .clipShape(RoundedRectangle(cornerRadius: 16))
                         } else {
                             ZStack {

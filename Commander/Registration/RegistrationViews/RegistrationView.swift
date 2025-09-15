@@ -150,7 +150,6 @@ struct SecondRegistrationView1: View {
     @State private var isNextTapped: Bool = false
     
     
-    
     var body: some View {
     
             ZStack {
@@ -174,8 +173,8 @@ struct SecondRegistrationView1: View {
                                   placeholder: "Email",
                                   showError: (!registrationVM.isEmailValid && !registrationVM.registrationData.email.isEmpty) ||
                                               registrationVM.isEmailTaken ||
-                                              (registrationVM.triedStep2 && registrationVM.registrationData.email.isEmpty)
-)
+                                              (registrationVM.triedStep2 && registrationVM.registrationData.email.isEmpty))
+                        
                         .onChange(of: registrationVM.registrationData.email) {
                             registrationVM.validateEmail()
                         }

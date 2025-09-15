@@ -1,5 +1,19 @@
 import SwiftUI
 
+private func iconForGameMode(_ mode: String) -> (String, Bool) {
+    switch mode.lowercased() {
+    case "bomb defuse":
+        return ("bombIcon", false)
+    case "free for all":
+        return ("swordsIcon", false)
+    case "team deathmatch":
+        return ("skullIcon", false)
+    default:
+        return ("questionmark.circle", true) 
+    }
+}
+
+
 
 struct RoomCodeModalView: View {
     let roomName: String
@@ -28,13 +42,22 @@ struct RoomCodeModalView: View {
                     .customFont(.bold, size: 24, hexColor: accentCustomColor)
                 
                 Group{
+//                    InfoCardView(
+//                        title: "Game Mode",
+//                        value: "\(gameModeRoom)",
+//                        iconName: "swordsIcon",
+//                        isSFSymbol: false
+//                        
+//                    )
+                    
+                    let (iconName, isSFSymbol) = iconForGameMode(gameModeRoom)
                     InfoCardView(
                         title: "Game Mode",
-                        value: "\(gameModeRoom)",
-                        iconName: "swordsIcon",
-                        isSFSymbol: false
-                        
+                        value: gameModeRoom,
+                        iconName: iconName,
+                        isSFSymbol: isSFSymbol
                     )
+
                     
                     InfoCardView(
                         title: "Max players",
@@ -90,12 +113,6 @@ struct RoomCodeModalView: View {
                         isNavigating = true
                         
 
-//                        if let sessionId = gameConfigVM.currentSessionId {
-//                                   gameConfigVM.getSessionConfiguration(gameId: sessionId)
-//                                gameConfigVM.startSession(gameId: sessionId)
-//                               }
-                        
-//                               onStartGame()
                         onJoin()
                         
                     }else {
@@ -123,7 +140,8 @@ struct RoomCodeModalView: View {
                    sessionId == roomCode,
                    !gameConfigVM.isGameStarted {
                     print("Leaving session from onDisappear in RoomCodeModalView (session not started yet)")
-                    gameConfigVM.leaveGameSession(gameId: sessionId)
+                    print("🥸LEAVE GAME SESSION CHIAMATA DA ROOM CODE MODAL VIEW ")
+                    gameConfigVM.leaveGameSession(roomCode: sessionId)
                 } else {
                     print("Not leaving session on onDisappear — either session started or sessionId mismatch.")
                 }
