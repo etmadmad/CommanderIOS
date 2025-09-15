@@ -44,7 +44,7 @@ struct ChangePasswordView: View {
                     )
                     errorText(triedSubmit && profileVM.changePasswordData.new_password.isEmpty, message: "New password is required")
                     errorText(!profileVM.changePasswordData.new_password.isEmpty && !profileVM.isNewPasswordValid, message: profileVM.errorMessage ?? "")
-                
+                    errorText(profileVM.changePasswordData.old_password == profileVM.changePasswordData.new_password, message: "New password must be different from old password")
                     .onChange(of: profileVM.changePasswordData.new_password) {
                         profileVM.validateChangePassword()
                     }
@@ -85,6 +85,43 @@ struct ChangePasswordView: View {
         }
 //        .navigationBarBackButtonHidden(true)
         // (opzionale) alert di successo
+      
+    }
+}
 
+struct PasswordChangedSuccessView: View {
+    var onDismiss: () -> Void
+
+    var body: some View {
+        ZStack {
+            Color(hex: darkColor)
+                .ignoresSafeArea()
+            
+            VStack(spacing: 32) {
+                Spacer()
+                
+                Image(systemName: "checkmark.circle.fill")
+                    .resizable()
+                    .frame(width: 100, height: 100)
+                    .foregroundColor(.green)
+                
+                Text("Password Changed")
+                    .customFont(.bold, size: 32, hexColor: "FFFFFF")
+                
+                Text("Your password has been updated successfully.")
+                    .multilineTextAlignment(.center)
+                    .foregroundColor(.white)
+                    .font(.subheadline)
+                    .padding(.horizontal, 30)
+                
+                Button(action: onDismiss) {
+                    Text("OK")
+                        .customButton(typeBtn: .primary, width: 200, height: 50, cornerRadius: 15)
+                }
+                
+                Spacer()
+            }
+            .padding()
+        }
     }
 }

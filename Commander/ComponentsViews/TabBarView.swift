@@ -1,32 +1,52 @@
 import SwiftUI
+
+
+import SwiftUI
+
 struct TabBarView: View {
     @EnvironmentObject var authViewModel: AuthtenticationViewModel
+    @EnvironmentObject var gameConfigVM: GameConfigurationViewModel
+    
+    @EnvironmentObject var profileVM: ProfileViewModel
 
     var body: some View {
+        
         TabView {
-//            ManageTeamsView()
-            GameJoinView()
-                .tabItem {
-                    Label("Home", systemImage: "house")
-                }
+            Group {
+                       if gameConfigVM.isGameStarted {
+                           GameStartedView()
+                               .environmentObject(gameConfigVM)
+                               .environmentObject(profileVM)
+                       } else {
+                           GameJoinView()
+                               .environmentObject(gameConfigVM)
+                       }
+                   }
+                   .id(gameConfigVM.isGameStarted)
+               .tabItem {
+                   Label("Home", systemImage: "house")
+               }
 
-            MapView()
+            LocationButtonTestView()
                 .tabItem {
                     Label("Map", systemImage: "map")
                 }
 
-            NavigationStack {
-                  ProfileView(registrationVM: RegisterViewModel())
-              }
-              .tabItem {
-                  Label("Profile", systemImage: "person.fill")
-              }
+            ProfileInfoView(registrationVM: RegisterViewModel())
+                .tabItem {
+                    Label("Profile", systemImage: "person.fill")
+                }
         }
+        .accentColor(Color(hex: accentCustomColor))
         .toolbarBackground(.indigo, for: .tabBar)
         .toolbarBackground(.visible, for: .tabBar)
     }
+    
 }
 
 #Preview {
     TabBarView()
 }
+
+
+

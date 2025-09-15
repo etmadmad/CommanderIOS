@@ -47,3 +47,6 @@ struct RegistrationSuccessView: View {
     }
 }
 
+#Preview {
+    RegistrationSuccessView(isSheetPresented: .constant(true))
+}

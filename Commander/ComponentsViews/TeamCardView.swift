@@ -2,12 +2,14 @@ import SwiftUI
 
 
 struct TeamsCardview: View {
+
     var teamColorCard: String
-    var members: [String]
+    @Binding var members: [String]
     var onMemberDropped: (String) -> Void
-
+    var onMemberRemoved: (String) -> Void
+    
     @State private var showSheet = false
-
+    
     var body: some View {
         VStack(spacing: 20) {
             Text("Team")
@@ -16,11 +18,11 @@ struct TeamsCardview: View {
                 .foregroundStyle(Color.white)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal)
-
+            
             Text("\(members.count)")
                 .font(.system(size: 100))
                 .foregroundStyle(Color.white)
-
+            
             Button("View") {
                 showSheet = true
             }
@@ -52,29 +54,74 @@ struct TeamsCardview: View {
             }
             return false
         }
+        //        .sheet(isPresented: $showSheet) {
+        //            ZStack {
+        //                Color(hex: darkColor)
+        //                    .ignoresSafeArea(.all, edges: .all)
+        //                VStack {
+        //                    Text("Players in Team")
+        //                        .font(.title)
+        //                        .padding()
+        //                    if members.isEmpty {
+        //                        Text("No players assigned.")
+        //                            .foregroundColor(.secondary)
+        //                    } else {
+        //                        List(members, id: \.self) { member in
+        //                            Text(member)
+        //                        }
+        //                    }
+        //                    Button("Close") {
+        //                        showSheet = false
+        //                    }
+        //                    .padding()
+        //                }
+        //            }
+        //
+        //            .presentationDetents([.medium])
+        //        }
+        
         .sheet(isPresented: $showSheet) {
             ZStack {
                 Color(hex: darkColor)
                     .ignoresSafeArea(.all, edges: .all)
+                
                 VStack {
                     Text("Players in Team")
                         .font(.title)
                         .padding()
+                    
                     if members.isEmpty {
                         Text("No players assigned.")
                             .foregroundColor(.secondary)
                     } else {
-                        List(members, id: \.self) { member in
-                            Text(member)
+                        List {
+                            ForEach(members, id: \.self) { member in
+                                HStack {
+                                    Text(member)
+                                        .foregroundStyle(Color.primary)
+                                    Spacer()
+                                    Button {
+                                        // Chiamiamo la closure per la rimozione
+                                        onMemberRemoved(member)
+                                    } label: {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .foregroundColor(.red)
+                                            .font(.title2)
+                                    }
+                                }
+                                .listRowBackground(Color(hex: teamColorCard).opacity(0.3)) // Rendi la riga trasparente
+                            }
                         }
+                        .listStyle(.plain) // Stile senza linee di separazione
+                        
                     }
+                    
                     Button("Close") {
                         showSheet = false
                     }
                     .padding()
                 }
             }
-
             .presentationDetents([.medium])
         }
     }

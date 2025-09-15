@@ -29,24 +29,29 @@ class GameConfigurationViewModel: ObservableObject {
 
     ///FOR NAVIGATION
     @Published var goToManageTeams: Bool = false
+    @Published var goToLobbyFFA: Bool = false
     @Published var isGameStarted: Bool = false {
         didSet {
             print("isGameStarted è cambiata: ORA è \(isGameStarted) su thread: \(Thread.current)")
         }
     }
     
+    @Published var showBomb: Bool = false
  
     /// FOR PLAYERS
-    @Published var joinedPlayers: [Player] = []{
+    @Published var joinedPlayers: [PlayerInSessionStatus] = []{
         didSet {
             for player in joinedPlayers {
-                if player.profileImageURL == nil {
+                if player.profileImage == nil {
                     self.fetchProfileImage(for: player.username)
                 }
             }
         }
     }
+    @Published var currentUsername: String? = nil
+    @Published var playersInTeams: [PlayersInTeamResponse] = []
     
+
     
     /// URLS GAME CONFIGURATION
     private var getGameConfigs = Environment.baseURL + "/my-game-configurations/"
@@ -168,6 +173,7 @@ class GameConfigurationViewModel: ObservableObject {
                     self.manager?.start()
                     self.currentSessionId = session.session_room_code
                     
+                    self.getSessionConfiguration(gameId: roomCode)
                     completion(session)
                     
                 case .failure(let error):
@@ -206,10 +212,16 @@ class GameConfigurationViewModel: ObservableObject {
                         print("👋 Succesfully left session: \(detail)")
 //                        self.manager = WebSocketSessionManager(sessionRoomCode: gameId)
 //                        self.manager?.close()
+                        
+                        ///aggiointo questo ()
+                        self.manager?.close()
                         self.manager = nil
 
-                         self.currentSessionId = nil
-//                         self.path = NavigationPath()
+                        self.currentSessionId = nil
+                        self.joinedPlayers = []
+                        self.playersInTeams = []
+                        self.isGameStarted = false
+                        self.showBomb = false
                         print("GAME STARTED? \(self.isGameStarted)")
                         
                     case .failure(let error):
@@ -255,12 +267,13 @@ class GameConfigurationViewModel: ObservableObject {
             }
     }
     
-    func addPlayer(_ player: Player) {
-        print(player, "CRISTODIIIOOOOOOOOOOOOOOOOO")
+    func addPlayer(_ player: PlayerInSessionStatus) {
+        
         if !joinedPlayers.contains(where: { $0.id == player.id }) {
             
             joinedPlayers.append(player)
-            print(joinedPlayers)
+            print("🟢\(player), aggiunto all'array joined players ", joinedPlayers)
+            
         }
     }
     
@@ -284,13 +297,14 @@ class GameConfigurationViewModel: ObservableObject {
         
         AF.request(URLPlayers, method: .get, headers: headers)
             .validate()
-            .responseDecodable(of: [Player].self) { response in
+            .responseDecodable(of: [PlayerInSessionStatus].self) { response in
                 
                 DispatchQueue.main.async {
                     switch response.result {
                     case .success(let players):
-                        print("✅ JSON ricevuto:", players)
+                        print("🟢 PLAYERS IN SESSION:", players)
                         self.joinedPlayers = players
+
                         //                        for player in players {
                         //
                         //
@@ -325,12 +339,12 @@ class GameConfigurationViewModel: ObservableObject {
             .responseDecodable(of: UserImageResponse.self) { response in
                 switch response.result {
                 case .success(let imageResponse):
-                    print("✅ JSON ricevuto:", imageResponse)
+                    print("🟢 IMAGE USER FETCHED:", imageResponse)
                     
                     
                     DispatchQueue.main.async {
                         if let index = self.joinedPlayers.firstIndex(where: { $0.username == username }) {
-                            self.joinedPlayers[index].profileImageURL = imageResponse.profile_image
+                            self.joinedPlayers[index].profileImage = imageResponse.profileImage
                         }
                     }
                 case .failure(let error):
@@ -407,7 +421,7 @@ class GameConfigurationViewModel: ObservableObject {
                 DispatchQueue.main.async {
                     switch response.result {
                     case .success:
-                        print("PLAYER ASSIGNED TO TEAM: \(username) - \(teamId)")
+                        print("🟢 PLAYER ASSIGNED TO TEAM: \(username) - \(teamId)")
                         completion(true)
 //                        self.startSession(gameId: gameId)
                     case .failure(let error):
@@ -421,7 +435,7 @@ class GameConfigurationViewModel: ObservableObject {
             }
     }
     
-    func startSession(gameId: String) {
+    func startSession(gameId: String, completion: (() -> Void)? = nil) {
         guard let token = try? keychain.get("accessToken") else{
             print("Token non trovati")
             return
@@ -440,9 +454,13 @@ class GameConfigurationViewModel: ObservableObject {
             .responseDecodable(of: SessionStartedResponse.self) { response in
                 switch response.result {
                 case .success(let imageResponse):
-                    print("✅ JSON ricevuto:", imageResponse)
-                    self.isGameStarted = true
-                    print("GAME STARTED??? \(self.isGameStarted)")
+                    print("🟢 START SESSION:", imageResponse)
+//                    self.isGameStarted = true
+//                    print("GAME STARTED??? \(self.isGameStarted)")
+                    DispatchQueue.main.async {
+                        self.isGameStarted = true
+                        completion?()
+                                    }
                 
                 case .failure(let error):
                     print("❌ Errore nella richiesta: \(error)")
@@ -450,4 +468,162 @@ class GameConfigurationViewModel: ObservableObject {
             }
     }
     
+    func getPlayersInTeams(gameId:String) {
+        guard let token = try? keychain.get("accessToken") else{
+            print("Token non trovati")
+            return
+        }
+
+        let headers: HTTPHeaders = [
+            "Authorization": "Bearer \(token)",
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        ]
+
+        let URLGetPlayersInTeams = "\(Environment.baseURL)/sessions/\(gameId)/teams/"
+        
+        AF.request(URLGetPlayersInTeams, method: .get, headers: headers)
+            .validate()
+            .responseDecodable(of: [PlayersInTeamResponse].self) { response in
+                switch response.result {
+                case .success(let players):
+                    self.playersInTeams = players
+                    print("💕💕💕💕💕💕 PLAYERS IN TEAM:", self.playersInTeams)
+
+                    if let username = self.currentUsername {
+                        self.updateShowBomb(for: username)
+                    }
+                
+                case .failure(let error):
+                    print("❌ Errore nella richiesta dei players: \(error)")
+                }
+            }
+    }
+    
+    
+    func membersOfMyTeam(for username: String?) -> [PlayerInSessionStatus] {
+        guard let username = username else {
+            print("⚠️ currentUser è nil")
+            return []
+        }
+        print("🔍 Cerco i compagni per utente:", username)
+
+        for team in playersInTeams {
+            print("➡️ Team:", team.teamName, "Players:", team.players.map { $0.username })
+            if team.players.contains(where: { $0.username == username }) {
+                print("✅ Match trovato nel team:", team.teamName)
+                return team.players
+            }
+        }
+
+        print("❌ Nessun match trovato")
+        return []
+    }
+    
+    func changeStatusPlayer(gameId: String, newStatus: String = "Eliminated") {
+        
+        guard let token = try? keychain.get("accessToken") else{
+            print("Token non trovati")
+            return
+        }
+
+        let headers: HTTPHeaders = [
+            "Authorization": "Bearer \(token)",
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        ]
+        let parameters: [String: Any] = [
+            "player_status": newStatus
+        ]
+        
+        let URLChangeStatusPlayer = "\(Environment.baseURL)/session/\(gameId)/me/status/"
+        
+        AF.request(URLChangeStatusPlayer, method: .post,  parameters: parameters,
+                   encoding: JSONEncoding.default, headers: headers)
+            .validate()
+            .responseDecodable(of: ChangeStatusPlayerResponse.self) { response in
+                switch response.result {
+                case .success(let detailStatusPlayer):
+                    print("🟢 CHANGED PLAYER STATUS:", detailStatusPlayer)
+
+                    
+                case .failure(let error):
+                    print("❌ Errore nella cambiamento di status: \(error)")
+                }
+            }
+    
+    }
+
+
+    func updateShowBomb(for username: String) {
+        // Controllo modalità
+        guard gameModeSession.lowercased() == "bomb defuse" else {
+            showBomb = false
+            return
+        }
+        
+        // Controllo se l'utente è in Team 2
+        let isInTeam2 = playersInTeams.first(where: { $0.teamName == "Team 2" })?
+            .players.contains(where: { $0.username == username }) ?? false
+        
+        showBomb = isInTeam2
+        print("💣💣💣💣💣💣SHOW BOMB: ", showBomb)
+    }
+
+
+    
+    func updateJoinedPlayerStatus(username: String, status: String) {
+        DispatchQueue.main.async {
+            var updated = false
+
+            /// FREE FOR ALL
+            if let idx = self.joinedPlayers.firstIndex(where: { $0.username == username }) {
+                self.joinedPlayers[idx].playerStatus = status
+                self.joinedPlayers = self.joinedPlayers
+                updated = true
+            }
+
+            /// TEAM-BASED MATCHES (DEATHMATCH & BOMB DEFUSE)
+            for teamIndex in self.playersInTeams.indices {
+                if let playerIndex = self.playersInTeams[teamIndex].players.firstIndex(where: { $0.username == username }) {
+                    self.playersInTeams[teamIndex].players[playerIndex].playerStatus = status
+                    self.playersInTeams = self.playersInTeams
+                    updated = true
+                }
+            }
+
+            if updated {
+                print("✅ updated status: \(username) -> \(status)")
+                return
+            }
+
+            // 🔹 fallback: ricarica dallo server se non trovato
+            let gameId = self.currentSessionId ?? self.roomCode
+            if !gameId.isEmpty {
+                print("⚠️ giocatore \(username) non trovato localmente, ricarico dal server")
+                self.getPlayersInTeams(gameId: gameId)
+                self.getPlayersInSession(gameId: gameId) { }
+            }
+        }
+    }
+
+    
+    
+
 }
+
+
+//    func updateJoinedPlayerStatus(username: String, status: String) {
+//        DispatchQueue.main.async {
+//            if let idx = self.joinedPlayers.firstIndex(where: { $0.username == username }) {
+//                self.joinedPlayers[idx].playerStatus = status
+//                // forziamo emissione (spesso non necessario, ma sicuro)
+//                self.joinedPlayers = self.joinedPlayers
+//                print("✅ updated joinedPlayers status: \(username) -> \(status)")
+//                return
+//            }
+//            // fallback: se non lo trovi, puoi ricaricare dallo server
+//            let gameId = self.currentSessionId ?? self.roomCode
+//            if !gameId.isEmpty { self.getPlayersInSession(gameId: gameId) { } }
+//        }
+//    }

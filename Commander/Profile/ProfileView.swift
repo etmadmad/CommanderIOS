@@ -23,26 +23,35 @@ struct ProfileView: View {
                 
                 HStack {
                     if isEditingUsername {
-                        TextField("Username", text: $profileVM.newUsernameData.username)
-                            .customFont(.bold, size: 25, hexColor: white)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        
-                        
-                            .onChange(of: profileVM.newUsernameData.username) {
-                                profileVM.validateNewUsername()
-                                
-                            }
-                        errorText(profileVM.isNewPasswordValid && !profileVM.newUsernameData.username.isEmpty, message: "Username is already taken")
-                        Button(action: {
+                        VStack{
+                            TextField("Username", text: $profileVM.newUsernameData.username)
+                                .customFont(.bold, size: 25, hexColor: white)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .autocapitalization(.none)
+                                .textInputAutocapitalization(.never)
+                                .onChange(of: profileVM.newUsernameData.username) {
+                                    profileVM.validateNewUsername()
+                                    
+                                }
+                            errorText(profileVM.isNewUsernameValid && !profileVM.newUsernameData.username.isEmpty, message: "Username is already taken")
                             
-                            isEditingUsername = false
+                        }
+                        Button(action: {
+                            if profileVM.isNewUsernameValid && !profileVM.newUsernameData.username.isEmpty {
+                                isEditingUsername = true
+                            }
+                            else{
+                                isEditingUsername = false
+                                print($profileVM.newUsernameData.username)
+                                profileVM.changeUsername()
+                            }
                         }) {
                             Image(systemName: "checkmark")
                                 .font(.system(size: 26))
                                 .foregroundStyle(Color(hex: accentCustomColor))
                         }
                         Button(action: {
-                            // Annulla modifica
+                          
                             isEditingUsername = false
                         }) {
                             Image(systemName: "xmark")
@@ -64,26 +73,7 @@ struct ProfileView: View {
                             
                         }
                     }
-                    
-                    //                    Text("@\(profileVM.userInfo.username)")
-                    //                        .customFont(.bold, size: 25, hexColor: white)
-                    //                        .frame(maxWidth: .infinity, alignment: .leading)
-                    
-                }
-                
-                //                Button {} label: {
-                //                    Text("Change Image")
-                //                        .customButton(typeBtn: .primary, width: 150, height: 40, cornerRadius: 8)
-                //                }
-                
-                
-                
-                
-//                ImagePickerView(selectedImageData: $profileVM.selectedImageData,
-//                                onImageSelected: { image in
-//                    profileVM.uploadProfileImage(image)
-//                })
-                
+             }
                 
                 if let imageData = profileVM.selectedImageData,
                    let uiImage = UIImage(data: imageData) {

@@ -1,5 +1,16 @@
 import Foundation
 
+//MARK: - FOR GETTING GAME CONFIGURATIONS
+
+struct GamesModel: Codable {
+    var founderGames: [FounderGame] = []
+    var adminGames: [FounderGame] = []
+
+    enum CodingKeys: String, CodingKey {
+        case founderGames = "founder_games"
+        case adminGames = "admin_games"
+    }
+}
 struct BombDetails: Codable {
     let bombCoordinateX: String
     let bombCoordinateY: String
@@ -34,21 +45,16 @@ struct FounderGame: Codable {
     }
 }
 
-struct GamesModel: Codable {
-    var founderGames: [FounderGame] = []
-    var adminGames: [FounderGame] = [] 
 
-    enum CodingKeys: String, CodingKey {
-        case founderGames = "founder_games"
-        case adminGames = "admin_games"
-    }
-}
 
+//MARK: - CREATE SESSION
 struct CreateSessionModel: Decodable {
     var id: String
     var session_status: String
     var session_room_code: String
 }
+
+//MARK: - JOIN SESSION
 
 struct JoinGameResponse: Decodable {
     let detail: String?
@@ -56,6 +62,14 @@ struct JoinGameResponse: Decodable {
     
 }
 
+//MARK: - LEAVE SESSION
+
+struct LeaveSessionResponseModel: Decodable {
+    let detail: String
+}
+
+
+//MARK: - PLAYERS IN SESSION
 struct PlayersInSessionResponse: Decodable {
     let players: [PlayerModel]
 }
@@ -67,10 +81,9 @@ struct PlayerModel: Decodable {
     let profile_image: String?
 }
 
-struct LeaveSessionResponseModel: Decodable {
-    let detail: String
-}
 
+
+//MARK: - SESSION CONFIGURATION
 struct SessionConfigResponseModel: Codable {
     let id, configurationName, configurationDescription: String
     let maxPlayers: Int
@@ -89,16 +102,9 @@ struct SessionConfigResponseModel: Codable {
     }
 }
 
-struct Player: Identifiable, Codable, Hashable {
-    var id: String { username }
-    var username: String
-    var profileImageURL: String? // la riempiamo con la chiamata API successiva
-}
 
-struct UserImageResponse: Codable {
-    let profile_image: String
-}
 
+//MARK: - TEAMS
 struct TeamsModel: Codable {
     let id: String?
     let team_name: String
@@ -107,4 +113,60 @@ struct TeamsModel: Codable {
 struct SessionStartedResponse: Codable {
     let detail: String?
     let non_field_errors: String?
+}
+
+
+//MARK: - PLAYERS (in session + in the teams)
+struct Player: Identifiable, Codable, Hashable {
+    var id: String { username }
+    var username: String
+    var profileImageURL: String? 
+}
+
+struct UserImageResponse: Codable {
+    let profileImage: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case profileImage = "profile_image"
+  
+    }
+}
+
+/// PLAYERS IN THE TEAMS
+struct PlayersInTeamResponse: Decodable {
+    let id, teamName: String
+    var players: [PlayerInSessionStatus]
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case teamName = "team_name"
+        case players
+    }
+}
+
+/// PLAYER IN SESSION MODEL
+struct PlayerInSessionStatus:  Codable, Identifiable, Equatable {
+    var id: String { username }
+    let username: String
+    var profileImage: String?
+    var playerStatus: String
+
+    enum CodingKeys: String, CodingKey {
+        case username
+        case profileImage = "profile_image"
+        case playerStatus = "player_status"
+    }
+}
+
+//MARK: - CHANGE STATUS PLAYER
+struct ChangeStatusPlayerModel: Encodable {
+    let playerStatus: String
+    
+    enum CodingKeys: String, CodingKey {
+        case playerStatus = "player_status"
+    }
+}
+
+struct ChangeStatusPlayerResponse: Decodable {
+    let detail: String?
 }

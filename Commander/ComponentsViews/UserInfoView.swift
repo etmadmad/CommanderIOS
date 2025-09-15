@@ -1,40 +1,45 @@
 import SwiftUI
 
-struct UserInfoView: View {
-    @ObservedObject var userInfoViewModel: UserInfoViewModel
-    let profile: Profile
+struct UserProfileView: View {
+    let player: PlayerInSessionStatus
     
     var body: some View {
         VStack {
-            ZStack{
+            ZStack {
                 Circle()
-                    .fill(Color.white)
-                AsyncImage(url: URL(string: profile.image)) { image in
-                    image.resizable()
-                        .scaledToFill()
-                        .frame(width: 40, height: 40)
-                        .clipShape(Circle())
-                } placeholder: {
+                    .fill(Color.white.opacity(0.2))
+                
+                if let urlString = player.profileImage, let url = URL(string: urlString) {
+                    AsyncImage(url: url) { image in
+                        image
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 60, height: 60)
+                            .clipShape(Circle())
+                    } placeholder: {
+                        ProgressView()
+                            .frame(width: 60, height: 60)
+                    }
+                    .padding(1)
+                } else {
+                    Image(systemName: "person.fill")
+                        .foregroundColor(.gray)
+                        .frame(width: 60, height: 60)
+                    
+                    
                     
                 }
-                
-                .padding(1)}
-            Text(profile.username)
-                
+            }
+            
+            Text(player.username.count > 7 ? String(player.username.prefix(7)) + "..." : player.username)
                 .font(.system(size: 16))
                 .foregroundStyle(Color.white)
                 .lineLimit(1)
-                //.truncationMode(.tail) //tronca la fine
-            
                 .onDrag {
-                    // Quando l'elemento viene trascinato, trasferiamo il nome dell'utente
-                    return NSItemProvider(object: profile.username as NSString)
-                                }
-            
-                
+                    NSItemProvider(object: player.username as NSString)
+                }
         }
-        
-        .padding()
+        .padding(.horizontal, 8)
     }
+    
 }
-

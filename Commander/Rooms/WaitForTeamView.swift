@@ -3,8 +3,8 @@
 import SwiftUI
 
 struct WaitingForTeamsView: View {
-    @ObservedObject var gameConfigVM: GameConfigurationViewModel
-    
+    @EnvironmentObject var gameConfigVM: GameConfigurationViewModel
+    @EnvironmentObject var profileVM: ProfileViewModel
     
     var body: some View {
         ZStack {
@@ -30,7 +30,7 @@ struct WaitingForTeamsView: View {
                         .scaleEffect(1.5)
                     
                     GameSummaryCardView(
-                        gameConfigVM: gameConfigVM,
+//                        gameConfigVM: gameConfigVM,
                         darkColor: darkColor,
                         accentCustomColor: accentCustomColor
                     )
@@ -47,13 +47,23 @@ struct WaitingForTeamsView: View {
             .padding(24)
         }
         .onDisappear {
-            print("👋 Leaving WaitingForTeamsView...")
+        
             
             if let sessionId = gameConfigVM.currentSessionId {
-                gameConfigVM.leaveGameSession(gameId: sessionId)
-            }
+                if gameConfigVM.isGameStarted {
+                    // Il gioco è iniziato → non abbandonare la sessione
+                    print("🚀 Game started, non lascio la sessione")
+                } else {
+                    // L’utente ha lasciato manualmente → eseguo il leave
+                    print("👋 User left WaitingForTeamsView manualmente, chiamo leaveGameSession")
+                    gameConfigVM.leaveGameSession(gameId: sessionId)
+                }}
         }
-        
+        .navigationDestination(isPresented: $gameConfigVM.isGameStarted) {
+           GameStartedView()
+            .environmentObject(gameConfigVM)
+            .environmentObject(profileVM)
+        }
         
         
         
@@ -62,7 +72,8 @@ struct WaitingForTeamsView: View {
     
     
     struct GameSummaryCardView: View {
-        @ObservedObject var gameConfigVM: GameConfigurationViewModel
+        @EnvironmentObject var gameConfigVM: GameConfigurationViewModel
+        /// MODFICIATO
         let darkColor: String
         let accentCustomColor: String
         

@@ -10,6 +10,8 @@
 	<string>$(API_SCHEME)</string>
 	<key>IMAGE_BASE_URL</key>
 	<string>5.189.158.70:8000/</string>
+	<key>MBXAccessToken</key>
+	<string>pk.eyJ1IjoiZXRoaW1hZG1hZCIsImEiOiJjbWVhNTI5dHIwc2NlMmlxdnAxenVtZTAzIn0.pwmn_QhDqsQRYB21ko15Zw</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>

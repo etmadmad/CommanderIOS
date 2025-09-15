@@ -37,7 +37,14 @@ struct TeamsSectionView: View {
                                 if let memberIndex = membersPerTeam[index].firstIndex(of: member) {
                                     membersPerTeam[index].remove(at: memberIndex)
                                 }
-                                gameConfigVM.joinedPlayers.append(Player(username: member))
+//                                gameConfigVM.joinedPlayers.append(Player(username: member))
+                                gameConfigVM.joinedPlayers.append(
+                                    PlayerInSessionStatus(
+                                        username: member,
+                                        profileImage: nil,
+                                        playerStatus: "Alive"
+                                    )
+                                )
                             }
                         ) 
                     }
@@ -111,28 +118,58 @@ struct ManageTeamsView: View {
                 .padding(.bottom, 100)
             }
             
-            StartRoomBarView(nameRoom: roomName, typeRoom: gameMode, sessionCode: sessionCode,    goToGameStarted: $gameConfigVM.isGameStarted  /*gameConfigVM: gameConfigVM*/, membersPerTeam: $membersPerTeam)
+//            StartRoomBarView(nameRoom: roomName, typeRoom: gameMode, sessionCode: sessionCode,    goToGameStarted: $gameConfigVM.isGameStarted  /*gameConfigVM: gameConfigVM*/, membersPerTeam: $membersPerTeam)
+            
+            StartRoomBarView(
+                nameRoom: roomName,
+                typeRoom: gameMode,
+                sessionCode: sessionCode,
+                goToGameStarted: $gameConfigVM.isGameStarted,
+                membersPerTeam: $membersPerTeam,
+                requiresTeams: true
+            )
+
         }
+        
         
         .onAppear {
             isLoading = true
             
-            
-            gameConfigVM.createTeams(gameId: sessionCode, teamName: "Team 1") { success in
-                if success {
-                    
-                    gameConfigVM.createTeams(gameId: sessionCode, teamName: "Team 2") { success in
-                        
-                        gameConfigVM.getPlayersInSession(gameId: sessionCode) {
-                            isLoading = false
+            // 1. Prima recupera chi è entrato nella sessione
+            gameConfigVM.getPlayersInSession(gameId: sessionCode) {
+                
+                // 2. Poi recupera eventuali team già creati
+                gameConfigVM.getPlayersInTeams(gameId: sessionCode)
+                
+                if gameConfigVM.playersInTeams.isEmpty {
+                    // Se non ci sono team → creali
+                    gameConfigVM.createTeams(gameId: sessionCode, teamName: "Team 1") { success1 in
+                        if success1 {
+                            gameConfigVM.createTeams(gameId: sessionCode, teamName: "Team 2") { success2 in
+                                if success2 {
+                                    gameConfigVM.getPlayersInTeams(gameId: sessionCode)
+                                    isLoading = false
+                                    
+                                }
+                            }
                         }
                     }
                 } else {
-                    
                     isLoading = false
                 }
+                
             }
         }
+        
+        /// ADDED THIS 
+        .onDisappear() {
+            if !gameConfigVM.isGameStarted {
+                gameConfigVM.leaveGameSession(gameId: sessionCode)
+            }
+        }
+        
+        
+        
         
         .alert(isPresented: $gameConfigVM.showAlert) {
             Alert(
@@ -145,45 +182,139 @@ struct ManageTeamsView: View {
         
     }
     
+}
     
     
     
+//    struct StartRoomBarView: View {
+//        let nameRoom: String
+//        let typeRoom: String
+//        let sessionCode: String
+//        @Binding var goToGameStarted: Bool
+//        @EnvironmentObject var gameConfigVM: GameConfigurationViewModel
+//        @Binding var membersPerTeam: [[String]]
+//        
+//        var body: some View {
+//            ZStack {
+//                Rectangle()
+//                    .fill(Color(hex: grayDetails))
+//                    .frame(height: 80)
+//                    .frame(maxWidth: .infinity)
+//                    .ignoresSafeArea(edges: .horizontal)
+//                
+//                HStack {
+//                    VStack(alignment: .leading, spacing: 4) {
+//                        Text(nameRoom)
+//                            .foregroundStyle(Color.white)
+//                        Text(typeRoom)
+//                            .foregroundStyle(Color.white.opacity(0.8))
+//                    }
+//                    
+//                    Spacer()
+//                    
+//                    Button(action: {
+//                        // preferiamo usare currentSessionId (impostata alla creazione sessione)
+//                        let sessionId = gameConfigVM.currentSessionId ?? sessionCode
+//                        guard !sessionId.isEmpty else {
+//                            print("Session ID non disponibile.")
+//                            return
+//                        }
+//                        
+//                        // Calcola quanti giocatori sono assegnati dalle card dei team
+//                        let assignedPlayersCount = membersPerTeam.flatMap { $0 }.count
+//                        let totalJoinedPlayers = gameConfigVM.joinedPlayers.count
+//                        
+//                        if assignedPlayersCount < totalJoinedPlayers {
+//                            gameConfigVM.errorMessage = "Per favore, assegna tutti i giocatori a una squadra prima di iniziare."
+//                            gameConfigVM.showAlert = true
+//                            return
+//                        }
+//                        
+//                        // se tutto ok: assegna i giocatori ai team (come già fai)
+//                        let dispatchGroup = DispatchGroup()
+//                        var successfulAssignments = 0
+//                        
+//                        for (index, teamMembers) in membersPerTeam.enumerated() {
+//                            guard index < gameConfigVM.teams.count, let teamId = gameConfigVM.teams[index].id else {
+//                                print("Team ID non disponibile per il team all'indice \(index)")
+//                                continue
+//                            }
+//                            
+//                            for username in teamMembers {
+//                                dispatchGroup.enter()
+//                                gameConfigVM.assignPlayerToTeam(username: username, gameId: sessionId, teamId: teamId) { success in
+//                                    if success { successfulAssignments += 1 }
+//                                    dispatchGroup.leave()
+//                                }
+//                            }
+//                        }
+//                        
+//                        dispatchGroup.notify(queue: .main) {
+//                            let totalToAssign = membersPerTeam.flatMap { $0 }.count
+//                            if successfulAssignments == totalToAssign {
+//                                // avvia la sessione: la chiamata di rete impostarà isGameStarted = true al successo
+//                                gameConfigVM.getSessionConfiguration(gameId: sessionId)
+//                                gameConfigVM.startSession(gameId: sessionId)
+//                                
+//                            } else {
+//                                gameConfigVM.errorMessage = "Alcuni giocatori non sono stati assegnati correttamente. Riprova."
+//                                gameConfigVM.showAlert = true
+//                            }
+//                        }
+//                    }) {
+//                        Text("Start Room")
+//                            .customButton(
+//                                typeBtn: .primary,
+//                                width: 120,
+//                                height: 45,
+//                                cornerRadius: 15
+//                            )
+//                    }
+//                    
+//                }
+//                .padding(.horizontal, 24)
+//            }
+//        }
+//    }
+
+struct StartRoomBarView: View {
+    let nameRoom: String
+    let typeRoom: String
+    let sessionCode: String
+    @Binding var goToGameStarted: Bool
+    @EnvironmentObject var gameConfigVM: GameConfigurationViewModel
     
-    struct StartRoomBarView: View {
-        let nameRoom: String
-        let typeRoom: String
-        let sessionCode: String
-        @Binding var goToGameStarted: Bool
-        @EnvironmentObject var gameConfigVM: GameConfigurationViewModel
-        @Binding var membersPerTeam: [[String]]
-        
-        var body: some View {
-            ZStack {
-                Rectangle()
-                    .fill(Color(hex: grayDetails))
-                    .frame(height: 80)
-                    .frame(maxWidth: .infinity)
-                    .ignoresSafeArea(edges: .horizontal)
+    // Parametri per modalità a team
+    @Binding var membersPerTeam: [[String]]
+    var requiresTeams: Bool = true
+    
+    var body: some View {
+        ZStack {
+            Rectangle()
+                .fill(Color(hex: grayDetails))
+                .frame(height: 80)
+                .frame(maxWidth: .infinity)
+                .ignoresSafeArea(edges: .horizontal)
+            
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(nameRoom)
+                        .foregroundStyle(Color.white)
+                    Text(typeRoom)
+                        .foregroundStyle(Color.white.opacity(0.8))
+                }
                 
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(nameRoom)
-                            .foregroundStyle(Color.white)
-                        Text(typeRoom)
-                            .foregroundStyle(Color.white.opacity(0.8))
+                Spacer()
+                
+                Button(action: {
+                    let sessionId = gameConfigVM.currentSessionId ?? sessionCode
+                    guard !sessionId.isEmpty else {
+                        print("Session ID non disponibile.")
+                        return
                     }
                     
-                    Spacer()
-                    
-                    Button(action: {
-                        // preferiamo usare currentSessionId (impostata alla creazione sessione)
-                        let sessionId = gameConfigVM.currentSessionId ?? sessionCode
-                        guard !sessionId.isEmpty else {
-                            print("Session ID non disponibile.")
-                            return
-                        }
-                        
-                        // Calcola quanti giocatori sono assegnati dalle card dei team
+                    if requiresTeams {
+                        // 🔹 Logica TEAM
                         let assignedPlayersCount = membersPerTeam.flatMap { $0 }.count
                         let totalJoinedPlayers = gameConfigVM.joinedPlayers.count
                         
@@ -193,15 +324,13 @@ struct ManageTeamsView: View {
                             return
                         }
                         
-                        // se tutto ok: assegna i giocatori ai team (come già fai)
+                        // Assegna giocatori ai team
                         let dispatchGroup = DispatchGroup()
                         var successfulAssignments = 0
                         
                         for (index, teamMembers) in membersPerTeam.enumerated() {
-                            guard index < gameConfigVM.teams.count, let teamId = gameConfigVM.teams[index].id else {
-                                print("Team ID non disponibile per il team all'indice \(index)")
-                                continue
-                            }
+                            guard index < gameConfigVM.teams.count,
+                                  let teamId = gameConfigVM.teams[index].id else { continue }
                             
                             for username in teamMembers {
                                 dispatchGroup.enter()
@@ -215,30 +344,141 @@ struct ManageTeamsView: View {
                         dispatchGroup.notify(queue: .main) {
                             let totalToAssign = membersPerTeam.flatMap { $0 }.count
                             if successfulAssignments == totalToAssign {
-                                // avvia la sessione: la chiamata di rete impostarà isGameStarted = true al successo
+                                gameConfigVM.getSessionConfiguration(gameId: sessionId)
                                 gameConfigVM.startSession(gameId: sessionId)
-                                
                             } else {
                                 gameConfigVM.errorMessage = "Alcuni giocatori non sono stati assegnati correttamente. Riprova."
                                 gameConfigVM.showAlert = true
                             }
                         }
-                    }) {
-                        Text("Start Room")
-                            .customButton(
-                                typeBtn: .primary,
-                                width: 120,
-                                height: 45,
-                                cornerRadius: 15
-                            )
+                    } else {
+                        // 🔹 Logica FREE FOR ALL
+                        gameConfigVM.getSessionConfiguration(gameId: sessionId)
+                        gameConfigVM.startSession(gameId: sessionId)
                     }
-                    
+                }) {
+                    Text("Start Room")
+                        .customButton(
+                            typeBtn: .primary,
+                            width: 120,
+                            height: 45,
+                            cornerRadius: 15
+                        )
                 }
-                .padding(.horizontal, 24)
             }
+            .padding(.horizontal, 24)
         }
     }
 }
+
         
-        
-  
+
+
+struct FreeForAllLobbyView: View {
+    let roomName: String
+    let gameMode: String
+    let sessionCode: String
+    @State private var isGameStarted = false
+    
+    @State private var numberItems: Int = 2
+    @State private var membersPerTeam: [[String]] = [[], []]
+    @State private var isLoading = true
+    @EnvironmentObject var gameConfigVM: GameConfigurationViewModel
+    //    @Environment(\.dismiss) var dismiss
+    @State private var isStarting = false
+    
+    var body: some View {
+        ZStack {
+            Color(hex: darkColor).ignoresSafeArea()
+            
+            VStack(spacing: 16) {
+                Text("Waiting for Players")
+                    .foregroundStyle(Color(hex: white))
+                Text(roomName)
+                    .customFont(.bold, size: 22, hexColor: accentCustomColor)
+                
+                Text("Players joined: \(gameConfigVM.joinedPlayers.count)")
+                    .foregroundColor(.white.opacity(0.9))
+                
+                ScrollView {
+                    VStack(spacing: 12) {
+                        
+                        ForEach(gameConfigVM.joinedPlayers, id: \.username) { p in
+                            HStack(spacing: 12) {
+                                if let urlStr = p.profileImage, let url = URL(string: urlStr) {
+                                    AsyncImage(url: url) { phase in
+                                        switch phase {
+                                           case .empty: ProgressView()
+                                           case .success(let image): image.resizable().scaledToFill()
+                                           case .failure: Image(systemName: "person.crop.circle.fill").resizable()
+                                           @unknown default: EmptyView()
+                                           }
+                                        
+                                    }
+                                    .frame(width: 44, height: 44)
+                                    .clipShape(Circle())
+                                } else {
+                                    Image(systemName: "person.crop.circle.fill")
+                                        .resizable()
+                                        .frame(width: 44, height: 44)
+                                }
+
+                                VStack(alignment: .leading) {
+                                    Text(p.username).foregroundColor(.white)
+                                    Text(p.playerStatus).foregroundColor(.gray).font(.caption)
+                                }
+                                Spacer()
+                            }
+                        }
+
+                    }
+                    .padding(.vertical, 8)
+                }
+                .frame(maxHeight: 320)
+                
+                Spacer()
+                
+//                Button(action: {
+//                    // preferiamo usare currentSessionId (impostata alla creazione sessione)
+//                    let sessionId = gameConfigVM.currentSessionId ?? sessionCode
+//                    guard !sessionId.isEmpty else {
+//                        print("Session ID non disponibile.")
+//                        return
+//                    }
+//                
+//                        gameConfigVM.getSessionConfiguration(gameId: sessionId)
+//                        gameConfigVM.startSession(gameId: sessionId)
+//                            
+//               
+//                    }
+//                ) {
+//                    Text("Start Room")
+//                        .customButton(
+//                            typeBtn: .primary,
+//                            width: 120,
+//                            height: 45,
+//                            cornerRadius: 15
+//                        )
+//
+                
+                StartRoomBarView(
+                    nameRoom: roomName,
+                    typeRoom: gameMode,
+                    sessionCode: sessionCode,
+                    goToGameStarted: $isGameStarted,
+                    membersPerTeam: .constant([]), // placeholder, non usato
+                    requiresTeams: false
+                )
+
+                    
+                    
+                }
+                .padding()
+            }
+            .onAppear {
+                // inizializza lista (poi gli eventi WS aggiorneranno joinedPlayers)
+                gameConfigVM.getPlayersInSession(gameId: sessionCode) { }
+            }
+        }
+    
+}

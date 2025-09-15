@@ -8,7 +8,8 @@ struct ProfileInfoView: View {
     @State private var isLoggingOut = false
     @State private var isEditingUsername = false
     @State private var editedUsername = ""
-    
+    @State private var showDropdown = false
+
     @State private var hasLoadedUserInfo = false
     
     var body: some View {
@@ -17,9 +18,83 @@ struct ProfileInfoView: View {
                 .ignoresSafeArea()
             
             VStack {
-                Text("Profile")
-                    .font(.system(size: 32, weight: .bold, design: .default))
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                HStack {
+                    Text("Profile")
+                        .font(.system(size: 32, weight: .bold, design: .default))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    // bottone gear
+                    //                    Button {
+                    //                        withAnimation {
+                    //                            showDropdown.toggle()
+                    //                        }
+                    //                    } label: {
+                    //                        Image(systemName: "gearshape.fill")
+                    //                            .font(.title2)
+                    //                            .foregroundColor(.white)
+                    //                    }
+                    //                    .overlay(
+                    //                        VStack(alignment: .trailing, spacing: 8) {
+                    //                            if showDropdown {
+                    //                                VStack(alignment: .leading, spacing: 12) {
+                    //                                   Text("SUCAAAAAA")
+                    //                                        .foregroundStyle(Color.white)
+                    //
+                    //                                }
+                    ////                                .padding()
+                    //                                .background(Color(hex: grayDetails))
+                    //                                .cornerRadius(5)
+                    ////                                .shadow(radius: 5)
+                    //                                .frame(width: 300)
+                    //                            }
+                    //                        }
+                    //                        .offset(y: 40) // distanza sotto la rotella
+                    //                        , alignment: .bottomTrailing
+                    //                    )
+                    
+                    //                    ZStack(alignment: .topTrailing) {
+                    //                        Button {
+                    //                                showDropdown.toggle()
+                    //
+                    //                        } label: {
+                    //                            Image(systemName: "gearshape.fill")
+                    //                                .font(.title2)
+                    //                                .foregroundColor(.white)
+                    //                        }
+                    //
+                    //                        if showDropdown {
+                    //                            VStack(alignment: .leading, spacing: 12) {
+                    //                                Button("Edit Profile") {
+                    //                                    // azione edit
+                    //                                    showDropdown = false
+                    //                                }
+                    //                            }
+                    //                            .padding(10)
+                    //                            .background(Color(hex: grayDetails))
+                    //                            .cornerRadius(8)
+                    //                            .offset(y: 40) // appare subito sotto la rotella
+                    //                            .frame(width: 180, alignment: .leading)
+                    //                        }
+                    //                    }
+                    
+                    
+                    Menu {
+                        
+                        Button("Change Password") {  }
+                        
+                        
+                        Divider()
+                        Button(role: .destructive) {
+                        } label: {
+                            Label("Log Out", systemImage: "rectangle.portrait.and.arrow.right")
+                        }
+                    } label: {
+                        Label("", systemImage: "gearshape.fill")
+                    }
+                    
+                }
+                
+                
                 
                 ZStack {
                     RoundedRectangle(cornerRadius: 20)
@@ -68,7 +143,7 @@ struct ProfileInfoView: View {
                         VStack(alignment: .leading){
                             Text(profileVM.userInfo.first_name + " " + profileVM.userInfo.last_name )
                                 .font(.system(size: 20, weight: .bold, design: .default))
-                               
+                            
                             Text("@" + profileVM.userInfo.username)
                                 .foregroundStyle(Color(hex: grayDetails))
                             Button{
@@ -84,8 +159,8 @@ struct ProfileInfoView: View {
                         }
                     }}
                 .frame(maxWidth: .infinity, alignment: .leading)
-
-               
+                
+                
                 VStack(spacing: 16) {
                     Text("Personal Info")
                         .font(.system(size: 20, weight: .bold))
@@ -93,37 +168,38 @@ struct ProfileInfoView: View {
                     InfoCard(title: "Email", value: profileVM.userInfo.email)
                     InfoCard(title: "Data di nascita", value: profileVM.userInfo.date_of_birth)
                 }
-                             
+                
                 VStack() {
                     Text("Activity")
                         .font(.system(size: 20, weight: .bold))
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
-
-                    
-                    Button {
-                        isLoggingOut = true
-                        authVM.logout()
-                        authVM.isLoggedIn = false
-                    } label: {
-                        ZStack{
-                            RoundedRectangle(cornerRadius: 20)
-                                .fill(Color.gray.opacity(0.2))
-                                .frame(height: 60)
-                            HStack{
-                                Image(systemName: "rectangle.portrait.and.arrow.right")
-                                    .foregroundStyle(Color(hex: redError))
-                                    .padding(.trailing, 20)
-                                    
-                                Text("Logout")
-                                    .customFont(.bold, size: 18, hexColor: white)
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.leading, 20)
+                
+                
+                Button {
+                    isLoggingOut = true
+                    authVM.logout()
+                    authVM.isLoggedIn = false
+                } label: {
+                    ZStack{
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(Color.gray.opacity(0.2))
+                            .frame(height: 60)
+                        HStack{
+                            Image(systemName: "rectangle.portrait.and.arrow.right")
+                                .foregroundStyle(Color(hex: redError))
+                                .padding(.trailing, 20)
+                            
+                            Text("Logout")
+                                .customFont(.bold, size: 18, hexColor: white)
                         }
-
                         .frame(maxWidth: .infinity, alignment: .leading)
-                    }}
+                        .padding(.leading, 20)
+                    }
+                    
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(24)
             }
@@ -158,9 +234,10 @@ struct InfoCard: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
-                    .customFont(.semibold, size: 14, hexColor: "AAAAAA")
+                    
+                    .foregroundStyle(Color(hex: lightGray))
                 Text(value)
-                    .customFont(.regular, size: 18, hexColor: "FFFFFF")
+                    .foregroundStyle(Color(hex: lightGray))
             }
             .padding(.horizontal, 16)
             .frame(maxWidth: .infinity, alignment: .leading)

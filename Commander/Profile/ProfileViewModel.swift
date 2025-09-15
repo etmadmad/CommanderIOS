@@ -257,14 +257,14 @@ class ProfileViewModel: ObservableObject {
             "Accept" : "application/json",
             "Content-Type" : "application/json"]
         
-        AF.request(changePasswordURL, method: .post, parameters: ["username": newUsernameData.username],
+        AF.request(changeUsernameURL, method: .post, parameters: ["username": newUsernameData.username],
                    encoding: JSONEncoding.default,
                    headers: headers)
             .validate()
             .responseDecodable(of: ChangeUsernameResponseModel.self) { response in
                     switch response.result {
                     case .success(let result):
-                        
+                        self.fetchUserInfo()
                         print("Username changed successfully: \(result)")
                         
                     case .failure(let result):

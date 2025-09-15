@@ -25,5 +25,4 @@ extension View {
     }
 }
 
-//  Text("Match about to start")
-//  .customFont(.semibold, size: 18, hexColor: accentCustomColor)
+

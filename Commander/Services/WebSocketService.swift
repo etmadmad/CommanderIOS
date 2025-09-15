@@ -1,7 +1,7 @@
 
 import Foundation
 
-struct PlayerStatusEvent: Codable {
+struct WebSocketEvent: Codable {
     let type: String
     let player_id: String?
     let status: String?
@@ -35,18 +35,27 @@ class WebSocketSessionManager {
                     
                 if let data = text.data(using: .utf8) {
                     do {
-                        let event = try JSONDecoder().decode(PlayerStatusEvent.self, from: data)
+                        let event = try JSONDecoder().decode(WebSocketEvent.self, from: data)
                         print("Evento decodificato: \(event)")
 
                         switch event.type {
-                        case "player_joined":
-                            if let username = event.username {
-                                print("Giocatore unito: \(username)")
-                                DispatchQueue.main.async {
-                                    let newPlayer = Player(username: username, profileImageURL: nil)
-                                    self?.viewModel?.addPlayer(newPlayer)
+
+                            case "player_joined":
+                                if let username = event.username {
+                                    let newPlayer = PlayerInSessionStatus(username: username, profileImage: nil, playerStatus: "Alive")
+                                    DispatchQueue.main.async {
+                                        self?.viewModel?.addPlayer(newPlayer)
+                                    }
                                 }
-                            }
+
+                            // quando ricevi player_status
+                            case "player_status":
+                                if let username = event.username, let status = event.status {
+                                    DispatchQueue.main.async {
+                                        self?.viewModel?.updateJoinedPlayerStatus(username: username, status: status)
+                                    }
+                                }
+
 
                         case "session_started":
                             print("Evento session_started ricevuto → imposto isGameStarted = true")
@@ -55,16 +64,20 @@ class WebSocketSessionManager {
                    
 
                             }
+                        
 
-                        case "session_ended":
+                        case "session_closed":
                             print("Evento session_ended ricevuto → imposto isGameStarted = false")
                             DispatchQueue.main.async {
                                 self?.viewModel?.isGameStarted = false
                                 self?.viewModel?.didJoinSuccessfully = false
                             }
+                            
+                        case "session_ended":
+                            print("SESSION ENDED")
 
                         default:
-                            print("Evento \(event.type) ignorato")
+                            print("🤖WEBSOCKET: Evento \(event.type) ignorato")
                         }
 
                     } catch {
@@ -95,3 +108,46 @@ class WebSocketSessionManager {
     
     
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// WINNER REASON OGGETTO
+//                        case "player_joined":
+//                            if let username = event.username {
+//                                print("Giocatore unito: \(username)")
+//                                DispatchQueue.main.async {
+//                                    let newPlayer = Player(username: username, profileImageURL: nil)
+//                                    self?.viewModel?.addPlayer(newPlayer)
+//                                }
+//                            }
+//
+//                        case "player_status":
+//                            if let username = event.username, let status = event.status {
+//                                print("WS: player_status event — \(username) -> \(status)")
+//                                DispatchQueue.main.async { [weak self] in
+//                                    self?.viewModel?.handlePlayerStatusEvent(username: username, status: status)
+//                                }
+//                            } else {
+//                                print("WS: player_status senza username/status")
+//                            }
+                            
+                            // WebSocketSessionManager: quando ricevi player_joined
