@@ -17,7 +17,7 @@ struct TeamPlayerRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            // Immagine profilo — ora robusta
+            
             if let url = imageURL(from: player.profileImage) {
                 AsyncImage(url: url) { phase in
                     switch phase {
@@ -39,7 +39,7 @@ struct TeamPlayerRow: View {
                     .foregroundColor(.gray)
             }
 
-            // Username
+            
             Text(player.username)
                 .font(.body)
                 .foregroundColor(.white)
@@ -136,7 +136,8 @@ struct GameStartedView: View {
     @State private var playerToReport: String?
     @State private var showBombSheet = false
 
-    
+    @State private var isNavigating = false
+
     private var players: [PlayerInSessionStatus] {
         if gameConfigVM.gameModeSession.lowercased() == "free for all" {
             return gameConfigVM.joinedPlayers
@@ -150,7 +151,7 @@ struct GameStartedView: View {
             Color(hex: darkColor).ignoresSafeArea()
             
             VStack {
-                // Titolo partita
+                
                 Text(gameConfigVM.configurationNameSession)
                     .foregroundColor(.white)
                     .font(.system(size: 30, weight: .bold))
@@ -159,7 +160,7 @@ struct GameStartedView: View {
                     .id(gameConfigVM.gameTimeSession)
                     .padding(.vertical, 10)
                 
-                // 🔹 Qui usiamo la vista riutilizzabile
+                
                 PlayersStatusSection(
                     players: players,
                     currentUser: profileVM.userInfo.username,
@@ -182,9 +183,9 @@ struct GameStartedView: View {
                         }
                     }
                     .sheet(isPresented: $showBombSheet) {
-                        BombSheetView()   // 👈 la tua nuova view per la bomba
-                            .presentationDetents([.medium, .large]) // medium e large
-                            .presentationDragIndicator(.visible)    // la linea per trascinare
+                        BombSheetView()
+                            .presentationDetents([.medium, .large])
+                            .presentationDragIndicator(.visible)
                     }
                 }
   
@@ -196,6 +197,17 @@ struct GameStartedView: View {
                     gameConfigVM.leaveGameSession(gameId: sessionId)
                 }
                 .foregroundColor(.red)
+            }
+            .navigationBarBackButtonHidden(true)
+            .onChange(of: gameConfigVM.showSessionEndedView) { newValue in
+                
+                if newValue {
+                    isNavigating = true
+                }
+            }
+            .navigationDestination(isPresented: $isNavigating) {
+                GameEndedView(outcome: gameConfigVM.outcome, winners: gameConfigVM.winners)
+                    .environmentObject(gameConfigVM)
             }
             .padding(24)
         }
@@ -226,6 +238,7 @@ struct GameStartedView: View {
         }
     }
 }
+
 
 
 struct BombSheetView: View {

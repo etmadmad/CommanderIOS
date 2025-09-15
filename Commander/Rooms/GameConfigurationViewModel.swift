@@ -37,6 +37,9 @@ class GameConfigurationViewModel: ObservableObject {
     }
     
     @Published var showBomb: Bool = false
+    @Published var showSessionEndedView: Bool = false
+    @Published var outcome: SessionOutcome = .draw
+    @Published var winners: [WinnerPlayer] = []
  
     /// FOR PLAYERS
     @Published var joinedPlayers: [PlayerInSessionStatus] = []{
@@ -305,11 +308,7 @@ class GameConfigurationViewModel: ObservableObject {
                         print("🟢 PLAYERS IN SESSION:", players)
                         self.joinedPlayers = players
 
-                        //                        for player in players {
-                        //
-                        //
-                        //                            self.fetchProfileImage(for: player.username)
-                        //                        }
+                 
                     case .failure(let error):
                         print("❌ Errore nella richiesta: \(error)")
                         
@@ -554,7 +553,7 @@ class GameConfigurationViewModel: ObservableObject {
     
     }
 
-
+    /// GAME STARTED VIEW UI
     func updateShowBomb(for username: String) {
         // Controllo modalità
         guard gameModeSession.lowercased() == "bomb defuse" else {
@@ -571,7 +570,7 @@ class GameConfigurationViewModel: ObservableObject {
     }
 
 
-    
+    /// GAME STARTED VIEW UI
     func updateJoinedPlayerStatus(username: String, status: String) {
         DispatchQueue.main.async {
             var updated = false
@@ -597,7 +596,7 @@ class GameConfigurationViewModel: ObservableObject {
                 return
             }
 
-            // 🔹 fallback: ricarica dallo server se non trovato
+            
             let gameId = self.currentSessionId ?? self.roomCode
             if !gameId.isEmpty {
                 print("⚠️ giocatore \(username) non trovato localmente, ricarico dal server")
@@ -606,24 +605,38 @@ class GameConfigurationViewModel: ObservableObject {
             }
         }
     }
+    
+    func handleSessionEnded(reason: String?, winners: Winner?) {
+        guard let reason else { return }
+        showSessionEndedView = true
 
-    
-    
+        let winnersArray: [WinnerPlayer]
+        switch winners {
+        case .players(let arr):
+            winnersArray = arr
+        default:
+            winnersArray = []
+        }
+
+        switch reason {
+        case "all_opponents_eliminated", "all_attackers_eliminated", "bomb_defused":
+            let youWin = winnersArray.contains(where: { $0.username == currentUsername })
+            outcome = youWin ? .victory : .defeat
+            self.winners = winnersArray
+
+        case "time_over":
+            if winnersArray.isEmpty {
+                outcome = .draw
+                self.winners = []
+            } else {
+                let youWin = winnersArray.contains(where: { $0.username == currentUsername })
+                outcome = youWin ? .victory : .defeat
+                self.winners = winnersArray
+            }
+        default:
+            self.winners = []
+        }
+    }
 
 }
 
-
-//    func updateJoinedPlayerStatus(username: String, status: String) {
-//        DispatchQueue.main.async {
-//            if let idx = self.joinedPlayers.firstIndex(where: { $0.username == username }) {
-//                self.joinedPlayers[idx].playerStatus = status
-//                // forziamo emissione (spesso non necessario, ma sicuro)
-//                self.joinedPlayers = self.joinedPlayers
-//                print("✅ updated joinedPlayers status: \(username) -> \(status)")
-//                return
-//            }
-//            // fallback: se non lo trovi, puoi ricaricare dallo server
-//            let gameId = self.currentSessionId ?? self.roomCode
-//            if !gameId.isEmpty { self.getPlayersInSession(gameId: gameId) { } }
-//        }
-//    }

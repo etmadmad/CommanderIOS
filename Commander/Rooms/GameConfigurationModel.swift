@@ -169,4 +169,5 @@ struct ChangeStatusPlayerModel: Encodable {
 
 struct ChangeStatusPlayerResponse: Decodable {
     let detail: String?
+    let winner: [String]?
 }

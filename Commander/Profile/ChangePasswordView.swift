@@ -83,8 +83,7 @@ struct ChangePasswordView: View {
             }
             .padding(.horizontal, 30)
         }
-//        .navigationBarBackButtonHidden(true)
-        // (opzionale) alert di successo
+
       
     }
 }

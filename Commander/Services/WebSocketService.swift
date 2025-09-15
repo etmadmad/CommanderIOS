@@ -1,11 +1,40 @@
 
 import Foundation
 
-struct WebSocketEvent: Codable {
+struct WebSocketEvent: Decodable {
     let type: String
+    let reason: String?
+    let winner: Winner?
     let player_id: String?
     let status: String?
     let username: String?
+}
+struct WinnerPlayer: Codable, Identifiable {
+    let id: String
+    let username: String
+}
+
+///DESERIALIZER
+enum Winner: Decodable {
+    case players([WinnerPlayer])
+    case string(String)
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        if let arr = try? container.decode([WinnerPlayer].self) {
+            self = .players(arr)
+        } else if let str = try? container.decode(String.self) {
+            self = .string(str)
+        } else {
+            throw DecodingError.typeMismatch(
+                Winner.self,
+                DecodingError.Context(
+                    codingPath: decoder.codingPath,
+                    debugDescription: "Winner is neither array nor string"
+                )
+            )
+        }
+    }
 }
 
 class WebSocketSessionManager {
@@ -21,6 +50,7 @@ class WebSocketSessionManager {
         webSocketTask?.resume()
     }
 
+    
     func receiveMessage() {
         webSocketTask?.receive { [weak self] result in
             switch result {
@@ -29,125 +59,83 @@ class WebSocketSessionManager {
             case .success(let message):
                 switch message {
                 case .string(let text):
-                    print("Ricevuto messaggio: \(text)")
-           
-
-                    
-                if let data = text.data(using: .utf8) {
-                    do {
-                        let event = try JSONDecoder().decode(WebSocketEvent.self, from: data)
-                        print("Evento decodificato: \(event)")
-
-                        switch event.type {
-
-                            case "player_joined":
-                                if let username = event.username {
-                                    let newPlayer = PlayerInSessionStatus(username: username, profileImage: nil, playerStatus: "Alive")
-                                    DispatchQueue.main.async {
-                                        self?.viewModel?.addPlayer(newPlayer)
-                                    }
-                                }
-
-                            // quando ricevi player_status
-                            case "player_status":
-                                if let username = event.username, let status = event.status {
-                                    DispatchQueue.main.async {
-                                        self?.viewModel?.updateJoinedPlayerStatus(username: username, status: status)
-                                    }
-                                }
-
-
-                        case "session_started":
-                            print("Evento session_started ricevuto → imposto isGameStarted = true")
-                            DispatchQueue.main.async {
-                                self?.viewModel?.isGameStarted = true
-                   
-
-                            }
-                        
-
-                        case "session_closed":
-                            print("Evento session_ended ricevuto → imposto isGameStarted = false")
-                            DispatchQueue.main.async {
-                                self?.viewModel?.isGameStarted = false
-                                self?.viewModel?.didJoinSuccessfully = false
-                            }
-                            
-                        case "session_ended":
-                            print("SESSION ENDED")
-
-                        default:
-                            print("🤖WEBSOCKET: Evento \(event.type) ignorato")
-                        }
-
-                    } catch {
-                        print("Errore decodifica JSON: \(error)")
-                    }
-                }
-
+                    self?.handleMessageWebsocket(text: text)
                 case .data(let data):
                     print("Ricevuti dati binari: \(data)")
                 @unknown default:
                     break
                 }
             }
-            // Continua ad ascoltare
             self?.receiveMessage()
         }
+    }
+
+    
+    func handleMessageWebsocket(text: String) {
+        print("Ricevuto messaggio: \(text)")
+        guard let data = text.data(using: .utf8) else { return }
+        do {
+            let event = try JSONDecoder().decode(WebSocketEvent.self, from: data)
+            print("Evento decodificato: \(event)")
+            switch event.type {
+            case "player_joined":
+                if let username = event.username {
+                    DispatchQueue.main.async {
+                        self.viewModel?.addPlayer(PlayerInSessionStatus(username: username, profileImage: nil, playerStatus: "Alive"))
+                    }
+                }
+            case "player_status":
+                if let username = event.username, let status = event.status {
+                    DispatchQueue.main.async {
+                        self.viewModel?.updateJoinedPlayerStatus(username: username, status: status)
+                    }
+                }
+            case "session_started":
+                DispatchQueue.main.async {
+                    self.viewModel?.isGameStarted = true
+                }
+            case "session_closed":
+                DispatchQueue.main.async {
+                    self.viewModel?.isGameStarted = false
+                    self.viewModel?.didJoinSuccessfully = false
+                }
+            case "session_ended":
+                self.handleSessionEnded(event)
+                self.viewModel?.showSessionEndedView = true
+                print("🟡🟡🟡🟡🟡🟡🟡SESSIONE TERMINATA")
+            default:
+                print("🤖WEBSOCKET: Evento \(event.type) ignorato")
+            }
+        } catch {
+            print("Errore decodifica JSON: \(error)")
+        }
+    }
+
+    
+    func handleSessionEnded(_ event: WebSocketEvent) {
+        print("SESSION ENDED: reason=\(event.reason ?? "nil")")
+        var winnersArray: [WinnerPlayer]? = nil
+        if let winner = event.winner {
+            /// IF WINNER IS STRING OR ARRAY
+               switch winner {
+               case .players(let array):
+                   winnersArray = array
+               case .string(_):
+                   winnersArray = nil
+               }
+           }
+           DispatchQueue.main.async {
+               self.viewModel?.handleSessionEnded(reason: event.reason, winners: event.winner)
+           }
+
     }
 
     func start() {
         receiveMessage()
     }
-    
-    
+
     func close() {
         webSocketTask?.cancel(with: .goingAway, reason: nil)
-        print("Websocket CLOSEDSDDD")
+        print("WebSocket CLOSED")
     }
-    
-    
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// WINNER REASON OGGETTO
-//                        case "player_joined":
-//                            if let username = event.username {
-//                                print("Giocatore unito: \(username)")
-//                                DispatchQueue.main.async {
-//                                    let newPlayer = Player(username: username, profileImageURL: nil)
-//                                    self?.viewModel?.addPlayer(newPlayer)
-//                                }
-//                            }
-//
-//                        case "player_status":
-//                            if let username = event.username, let status = event.status {
-//                                print("WS: player_status event — \(username) -> \(status)")
-//                                DispatchQueue.main.async { [weak self] in
-//                                    self?.viewModel?.handlePlayerStatusEvent(username: username, status: status)
-//                                }
-//                            } else {
-//                                print("WS: player_status senza username/status")
-//                            }
-                            
-                            // WebSocketSessionManager: quando ricevi player_joined

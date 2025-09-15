@@ -53,7 +53,7 @@ struct YourRoomsView: View {
                 }
             }
             
-            // Titolo e sottotitolo
+     
             VStack(alignment: .leading, spacing: 4) {
                 Text(game.configurationName)
                     .font(.system(size: 18, weight: .regular))
@@ -68,7 +68,7 @@ struct YourRoomsView: View {
             
             Spacer()
             
-            // Bottone Play
+          
             Button {
                 gameConfigVM.createGameSession(gameId: game.id) { session in
                     guard let session = session else {
@@ -108,14 +108,9 @@ struct YourRoomsView: View {
                                 gameConfigVM.goToManageTeams = true
                                 sessionRoomCode = nil
                             }
-//                            } onStartGame: {
-//
-//                                didClickBtnModal = true
-//                                gameConfigVM.isGameStarted = true
-//                                sessionRoomCode = nil
-//                            }
+
                             onJoin: {
-                                // join premuto in RoomCodeModalView -> chiudo modal e apro lobby (solo admin dovrebbe arrivare qui)
+                    
                                 didClickBtnModal = true
                                 gameConfigVM.goToLobbyFFA = true
                                 sessionRoomCode = nil
